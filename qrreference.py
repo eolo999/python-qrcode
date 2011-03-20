@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from string import ascii_uppercase, digits, upper
-from nose.tools import raises
 
 symbol_versions = [(n+1) for n in range(40)]
 side_lengths = range(21, 181, 4)
@@ -153,39 +152,10 @@ def get_num_of_bits_character_count_indicator(version, data_mode):
 def get_qr_size(version):
     return symbol_sizes[version]
 
-
-### TEST
-
-def test_qr_size():
-    assert get_qr_size(23) == 109
-
-def test_get_num_of_bits_character_count_indicator():
-    assert get_num_of_bits_character_count_indicator(27, 'kanji') == 12
-    assert get_num_of_bits_character_count_indicator(1, 'numeric') == 10
-
-@raises(KeyError)
-def test_qr_size_wrong_version():
-    get_qr_size(43)
-
-def test_get_mode_indicators():
-    assert get_mode_indicators('kanji') == '1000'
-
-@raises(KeyError)
-def test_get_wrong_mode_indicators():
-    get_mode_indicators('adfasdf')
-    assert get_mode_indicators('kanji') == '1000'
-
 def alphanumeric_codes(input):
     codes = []
     for ch in input:
         codes.append(alphanumeric_char_values[upper(ch)])
     return codes
 
-def test_alphanumeric_codes():
-    assert alphanumeric_codes('AC-42') == [10,12,41,4,2]
 
-def test_get_max_codewords():
-    assert get_max_codewords(1, 'M') == 16
-
-def test_get_ec_codewords():
-    assert get_ec_codewords(1, 'H') == 17
