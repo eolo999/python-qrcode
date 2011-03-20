@@ -22,6 +22,7 @@ class Encoder(object):
             symbol_version=1,
             error_correction_level='L',
             data_mode='numeric'):
+
         self.code = ''
         self.input_string = input_string
         self.error_correction_level = error_correction_level
@@ -43,6 +44,10 @@ class Encoder(object):
                 self.error_correction_level)
         self.fill_symbol_with_pad_codewords(max_codewords -
                 len(self.codewords))
+        # apply_error_correction
+        # apply mask
+        # matrix position
+        # draw symbol
 
     def fill_symbol_with_pad_codewords(self, num_of_codewords):
         pad0 = '11101100'
@@ -52,14 +57,6 @@ class Encoder(object):
                 self.codewords.append(pad0)
             else:
                 self.codewords.append(pad1)
-
-#        self._split_codewords()
-#        self._add_pad_chars()
-#        self._error_correction()
-#        self._interleave()
-#        self._build_matrix()
-#        self._apply_mask()
-#        self._generate_format_and_version_info()
 
     def _terminator(self):
         delta = self.symbol_capacity_bits - len(self.code)
@@ -124,30 +121,6 @@ class Encoder(object):
         C = self.count_bits
         D = len(self.input_string)
         return B == 4 + C + 11 * (D / 2) + 6 * (D % 2)
-
-    def _split_codewords(self):
-        pass
-
-    def _add_pad_chars(self):
-        pass
-
-    def _error_correction(self):
-        """
-        Divide the codeword sequence into the required number of blocks (as
-        defined in Tables 13 to 22) to enable the error correction algorithms
-        to be processed. Generate the error correction codewords for each
-        block, appending the error correction codewords to the end of the data
-        codeword sequence.
-        """
-        pass
-
-    def _interleave():
-        """
-        Interleave the data and error correction codewords from each block as
-        described in 8.6 (step 3) and add remainder bits as necessary.
-        """
-        pass
-
 
 
 def main():
