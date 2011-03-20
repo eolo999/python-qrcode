@@ -7,8 +7,8 @@ side_lengths = range(21, 181, 4)
 # 21x21 modules to 177x177 modules
 # (Versions 1 to 40, increasing in steps of 4 modules per side)
 symbol_sizes = dict(zip(symbol_versions, side_lengths))
-num_of_bits_character_count_indicator = {}
 
+num_of_bits_character_count_indicator = {}
 for version in symbol_versions:
     num_of_bits_character_count_indicator[version] = {}
     if 1 <= version <= 9:
@@ -35,17 +35,12 @@ mode_indicators = {
         'kanji': '1000',
         'structured_append': '0011',
         'fnc1': ['0101', '1001'],
-        'terminator': '0000'
         }
 
 # cannot enumerate because i need to lookup by char and not by number
 alphanumeric_char_values = dict([(x[1], x[0]) for x in enumerate(digits +
     ascii_uppercase + ' $%*+-./:')])
 
-# 1. Divide the data codeword sequence into n blocks as defined in Tables 13
-# to 22 according to the version and error correction level.
-
-# Number of symbol characters and input data capacity for versions 1 to 8
 max_codewords = {
         1:  {
             'data_codewords': {'L': 19, 'M': 16, 'Q': 13, 'H': 9},
@@ -134,6 +129,25 @@ max_codewords = {
         40: {'data_codewords': {'L': 721, 'M': 563, 'Q': 397, 'H': 313},
                 'ec_codewords': {}}
         }
+
+max_char_capacity = {
+        'numeric': {
+            1: {'L': 41, 'M': 34, 'Q': 27, 'H': 17},
+            2: {'L': 77, 'M': 63, 'Q': 48, 'H': 34},
+            3: {'L': 127, 'M': 101, 'Q': 77, 'H': 58},
+            4: {'L': 187, 'M': 149, 'Q': 111, 'H': 82},
+            5: {'L': 255, 'M': 202, 'Q': 144, 'H': 106},
+            },
+        'alphanumeric': {
+            1: {'L': 25, 'M': 20, 'Q': 16, 'H': 10},
+            2: {'L': 47, 'M': 30, 'Q': 29, 'H': 20},
+            3: {'L': 77, 'M': 61, 'Q': 47, 'H': 35},
+            4: {'L': 114, 'M': 90, 'Q': 67, 'H': 50},
+            5: {'L': 154, 'M': 122, 'Q': 87, 'H': 64},
+            },
+        }
+            
+
 def get_max_codewords(version, ecl):
     return max_codewords[version]['data_codewords'][ecl]
 

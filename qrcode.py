@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from nose.tools import raises
-
 from qrutils import (
         convert_numeric,
         convert_alphanumeric,
@@ -13,19 +11,22 @@ from qrreference import (
         get_mode_indicators,
         get_num_of_bits_character_count_indicator,
         get_max_databits,
-        get_max_codewords
+        get_max_codewords,
         )
 
 correction_levels = ['L', 'M', 'Q', 'H']
 
 class Encoder(object):
-    def __init__(self, input_string, error_correction_level,
+    def __init__(self,
+            input_string,
+            symbol_version=1,
+            error_correction_level='L',
             data_mode='numeric'):
         self.code = ''
         self.input_string = input_string
         self.error_correction_level = error_correction_level
-        self.symbol_version = self._determine_version()
         self.data_mode = data_mode
+        self.symbol_version = symbol_version
         self.mode_bits = get_mode_indicators(self.data_mode)
         self.count_bits = get_num_of_bits_character_count_indicator(
                 self.symbol_version,
@@ -70,7 +71,6 @@ class Encoder(object):
             raise Exception("Data is greater than symbol capacity")
         self.code += ('0' * num_of_zeroes)
 
-
     def _bitstream_to_codewords(self):
         self._terminator()
         codewords = []
@@ -84,9 +84,6 @@ class Encoder(object):
             tmp_word = pad(tmp_word, 8)
             codewords.append(tmp_word)
         return codewords
-
-    def _determine_version(self):
-        return 1
 
     def convert_data(self):
         """
@@ -155,8 +152,8 @@ class Encoder(object):
 
 def main():
     global num_enc, alnum_enc
-    num_enc = Encoder('234522345', 'L')
-    alnum_enc = Encoder('asdfdadas876-asd.', 'L', 'alphanumeric')
+    num_enc = Encoder('234522345', 1, 'L')
+    alnum_enc = Encoder('asdfdadas876-asd.', 1, 'L', 'alphanumeric')
 
 if __name__ == '__main__':
     main()
