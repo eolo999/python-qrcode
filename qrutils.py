@@ -1,3 +1,5 @@
+from nose.tools import raises
+
 from qrreference import alphanumeric_codes
 
 def split_numeric_input(input):
@@ -29,6 +31,12 @@ def split_alphanumeric_input(input):
 
 def bin(x, width):
     return ''.join(str((x>>i)&1) for i in xrange(width-1,-1,-1))
+
+def pad(bit_string, length):
+    zeroes = length - len(bit_string)
+    if zeroes < 0:
+        raise Exception("Bit string is longer than padding")
+    return bit_string + '0' * zeroes
 
 def convert_numeric(input):
     splitted_input = split_numeric_input(input)
@@ -62,3 +70,9 @@ def test_split_alphanumeric_mode():
 def test_convert_numeric():
     assert(convert_numeric('01234567') == '000000110001010110011000011')
 
+def test_pad():
+    assert pad('0101', 5) == '01010'
+
+@raises(Exception)
+def test_wrong_pad():
+    pad('0101001', 2)

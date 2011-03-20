@@ -1,14 +1,19 @@
 # -*- coding: utf-8 -*-
 
+from nose.tools import raises
+
 from qrutils import (
         convert_numeric,
         convert_alphanumeric,
-        bin
+        bin,
+        pad
         )
 
 from qrreference import (
         get_mode_indicators,
-        get_num_of_bits_character_count_indicator
+        get_num_of_bits_character_count_indicator,
+        get_max_databits,
+        get_max_codewords
         )
 
 correction_levels = ['L', 'M', 'Q', 'H']
@@ -26,9 +31,27 @@ class Encoder(object):
                 self.symbol_version,
                 self.data_mode
                 )
+        self.symbol_capacity_bits = get_max_databits(self.symbol_version,
+                self.error_correction_level)
+        self.encode()
 
     def encode(self):
         self.convert_data()
+        self.codewords = self._bitstream_to_codewords()
+        max_codewords = get_max_codewords(self.symbol_version,
+                self.error_correction_level)
+        self.fill_symbol_with_pad_codewords(max_codewords -
+                len(self.codewords))
+
+    def fill_symbol_with_pad_codewords(self, num_of_codewords):
+        pad0 = '11101100'
+        pad1 = '00010001'
+        for n in range(num_of_codewords):
+            if n % 2 == 0:
+                self.codewords.append(pad0)
+            else:
+                self.codewords.append(pad1)
+
 #        self._split_codewords()
 #        self._add_pad_chars()
 #        self._error_correction()
@@ -36,6 +59,31 @@ class Encoder(object):
 #        self._build_matrix()
 #        self._apply_mask()
 #        self._generate_format_and_version_info()
+
+    def _terminator(self):
+        delta = self.symbol_capacity_bits - len(self.code)
+        if delta >= 4:
+            num_of_zeroes = 4
+        elif 0 <= delta < 4:
+            num_of_zeroes = delta
+        else:
+            raise Exception("Data is greater than symbol capacity")
+        self.code += ('0' * num_of_zeroes)
+
+
+    def _bitstream_to_codewords(self):
+        self._terminator()
+        codewords = []
+        tmp_word = ''
+        for n in range(1, len(self.code) + 1):
+            tmp_word += self.code[n - 1]
+            if n % 8 == 0:
+                codewords.append(tmp_word)
+                tmp_word = ''
+        if tmp_word:
+            tmp_word = pad(tmp_word, 8)
+            codewords.append(tmp_word)
+        return codewords
 
     def _determine_version(self):
         return 1
@@ -47,28 +95,23 @@ class Encoder(object):
         """
         if self.data_mode == 'numeric':
             self.code = (self._insert_indicators() +
-                    convert_numeric(self.input_string) +
-                    self._terminator())
+                    convert_numeric(self.input_string))
             assert self.validate_numeric_bitstream_length()
         elif self.data_mode == 'alphanumeric':
             self.code = (self._insert_indicators() +
-                    convert_alphanumeric(self.input_string) +
-                    self._terminator())
+                    convert_alphanumeric(self.input_string))
             assert self.validate_alphanumeric_bitstream_length()
 
     def _insert_indicators(self):
         indicators = self.mode_bits + bin(len(self.input_string), self.count_bits)
         return indicators
 
-    def _terminator(self):
-        return '0000'
-
     def validate_numeric_bitstream_length(self):
         #to be implemented
         r = len(self.input_string) % 3
         if r != 0:
             r = r * 3 + 1
-        return len(self.code) == (4 + self.count_bits + 10 * (len(self.input_string)/3) + r + 4)
+        return len(self.code) == (4 + self.count_bits + 10 * (len(self.input_string)/3) + r)
 
     def validate_alphanumeric_bitstream_length(self):
         """
@@ -83,7 +126,7 @@ class Encoder(object):
         B = len(self.code)
         C = self.count_bits
         D = len(self.input_string)
-        return B == 4 + C + 11 * (D / 2) + 6 * (D % 2) + 4
+        return B == 4 + C + 11 * (D / 2) + 6 * (D % 2)
 
     def _split_codewords(self):
         pass
@@ -114,14 +157,23 @@ class Encoder(object):
 
 def test_numeric_encoder():
     e = Encoder('01234567', 'L')
-    e.encode()
     assert e.code == '000100000010000000001100010101100110000110000'
     e = Encoder('0123456789012345', 'L')
-    e.encode()
     assert e.code == '000100000100000000001100010101100110101001101110000101001110101001010000'
 
 def test_alphanumeric_encoder():
     e = Encoder('AC-42', 'L', 'alphanumeric')
-    e.encode()
     assert e.code == '001000000010100111001110111001110010000100000'
 
+@raises(Exception)
+def test_pad():
+    e = Encoder('12341234123412341234', 'H')
+    e.pad()
+
+def main():
+    global num_enc, alnum_enc
+    num_enc = Encoder('234522345', 'L')
+    alnum_enc = Encoder('asdfdadas876-asd.', 'L', 'alphanumeric')
+
+if __name__ == '__main__':
+    main()
