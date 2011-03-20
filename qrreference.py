@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+from string import ascii_uppercase, digits, upper
 from nose.tools import raises
 
 symbol_versions = [(n+1) for n in range(40)]
@@ -39,6 +39,11 @@ mode_indicators = {
         'terminator': '0000'
         }
 
+# cannot enumerate because i need to lookup by char and not by number
+alphanumeric_char_values = dict([(x[1], x[0]) for x in enumerate(digits +
+    ascii_uppercase + ' $%*+-./:')])
+
+
 def get_mode_indicators(data_mode):
     return mode_indicators[data_mode]
 
@@ -70,3 +75,11 @@ def test_get_wrong_mode_indicators():
     get_mode_indicators('adfasdf')
     assert get_mode_indicators('kanji') == '1000'
 
+def alphanumeric_codes(input):
+    codes = []
+    for ch in input:
+        codes.append(alphanumeric_char_values[upper(ch)])
+    return codes
+
+def test_alphanumeric_codes():
+    assert alphanumeric_codes('AC-42') == [10,12,41,4,2]
