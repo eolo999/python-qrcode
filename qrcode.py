@@ -124,9 +124,9 @@ class Encoder(object):
 
 
 def main():
-    global num_enc, alnum_enc
-    num_enc = Encoder('234522345', 1, 'L')
-    alnum_enc = Encoder('asdfdadas876-asd.', 1, 'L', 'alphanumeric')
+    global num, alnum
+    num = Encoder('01234567', 1, 'L')
+    alnum = Encoder('asdfdadas876-asd.', 1, 'L', 'alphanumeric')
 
 if __name__ == '__main__':
     main()

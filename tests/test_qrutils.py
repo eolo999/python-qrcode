@@ -6,7 +6,9 @@ from nose.tools import raises
 from qrutils import (split_numeric_input,
         split_alphanumeric_input,
         convert_numeric,
-        pad
+        pad,
+        to_coeff,
+        list_to_coeff
         )
 
 def test_split_numeric_mode():
@@ -27,3 +29,12 @@ def test_pad():
 @raises(Exception)
 def test_wrong_pad():
     pad('0101001', 2)
+
+def test_to_coeff():
+    assert to_coeff('0') == 0
+    assert to_coeff('1') == 1
+    assert to_coeff('10') == 2
+    assert to_coeff('11') == 3
+
+def test_list_to_coeff():
+    assert list_to_coeff(['110', '1001']) == [6, 9]

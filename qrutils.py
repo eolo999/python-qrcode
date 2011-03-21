@@ -1,5 +1,3 @@
-from nose.tools import raises
-
 from qrreference import alphanumeric_codes
 
 def split_numeric_input(input):
@@ -56,4 +54,17 @@ def convert_alphanumeric(input):
         else:
             data_bit_stream += bin(input[0], 6)
     return data_bit_stream
+
+def list_to_coeff(codewords_list):
+    coeff = map(to_coeff, codewords_list)
+    return coeff
+
+def to_coeff(codeword):
+    count = len(codeword)
+    result = 0
+    for bit in codeword:
+        if bit == '1':
+            result += pow(2, count - 1)
+        count -= 1
+    return result
 
