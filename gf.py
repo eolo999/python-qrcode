@@ -39,6 +39,21 @@ def product(a, b):
     else:
         return alog[(log[a] + log[b]) % (GF - 1)]
 
+def alpha_power(m):
+    if m == 0:
+        return 1
+    else:
+        result = 1
+        for i in range(0,m):
+            result = product(result, 2)
+        return result
+
+#        result = 0
+#        while m > 0:
+#            result += product(n, n)
+#            m -= 1
+#        return result
+
 def quotient(a, b):
     """
     int Quotient (int A, int B) { // namely A divided by B 
@@ -55,7 +70,16 @@ def test_sum():
     assert sum(141, 43) == 166
     assert sum(43, 178) == difference(43, 178)
 
+def test_power():
+    fill_log_arrays()
+    assert alpha_power(0) == 1
+    assert alpha_power(1) == 2
+    print alpha_power(8)
+    assert alpha_power(9) == 58
+
 def test_product():
+    """This must be the last test called as we are changing the prime
+    polynomial"""
     global PP
     PP = 301
     fill_log_arrays()
@@ -64,6 +88,8 @@ def test_product():
 
 def main():
     fill_log_arrays()
+    for n in range(9):
+        print n, '\t', alpha_power(n)
 
 if __name__ == '__main__':
     main()
