@@ -100,6 +100,9 @@ class GF256Poly(object):
         else:
             self.coefficients = coefficients
 
+    def __str__(self):
+        return "GFPoly(" + str(self.coefficients) + ")"
+
     def get_coefficients(self):
         return self.coefficients
 
@@ -131,7 +134,6 @@ class GF256Poly(object):
             return other
         if other.is_zero():
             return self
-
         if self.length > other.length:
             smaller_coefficients = self.coefficients
             larger_coefficients = other.coefficients
@@ -139,12 +141,12 @@ class GF256Poly(object):
             larger_coefficients = self.coefficients
             smaller_coefficients = other.coefficients
 
-        length_diff = abs(self.length - other.length)
-        sum_diff = larger_coefficients[0:length_diff]
-
+        sum_diff = [0] * len(larger_coefficients)
+        length_diff = len(larger_coefficients) - len(smaller_coefficients)
+        sum_diff[0:length_diff] = larger_coefficients[0:length_diff]
+        
         for i in range(length_diff, len(larger_coefficients)):
-            sum_diff[i] = gf_sum(
-                    smaller_coefficients[i - length_diff],
+            sum_diff[i] = gf_sum(smaller_coefficients[i - length_diff],
                     larger_coefficients[i])
 
         return GF256Poly(sum_diff)
@@ -196,8 +198,7 @@ class GF256Poly(object):
                     remainder.get_coefficient(remainder.get_degree()),
                     inverse_denominator_leading_term)
             term = other.multiply_by_monomial(degree_difference, scale)
-            iteration_quotient = build_monomial(degree_difference,
-                    scale)
+            iteration_quotient = build_monomial(degree_difference, scale)
 
             quotient = quotient.add(iteration_quotient)
             remainder = remainder.add(term)
