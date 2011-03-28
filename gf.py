@@ -8,100 +8,101 @@ based the following mess.
 
 from array import array
 
-GF = 256
-# 285 is for QR Code only
-PP = 285
+class GaloisField(object):
+    def __init__(self, galois_field =256, primitive_polynomial_as_int=285):
+        self.pp = primitive_polynomial_as_int
+        self.gf = galois_field
+        self.log = array('i', [0] * self.gf)
+        self.alog = array('i', [0] * self.gf)
 
-log = array('i', [0]*GF)
-alog = array('i', [0]*GF)
+        self.fill_log_arrays()
 
-def fill_log_arrays():
-    log[0] = 1 - GF
-    alog[0] = 1
-    for i in range(1, GF):
-        alog[i] = alog[i-1] * 2
-        if alog[i] >= GF:
-            alog[i] ^= PP
-        log[alog[i]] = i
+    def fill_log_arrays(self):
+        self.log[0] = 1 - self.gf
+        self.alog[0] = 1
+        for i in range(1, self.gf):
+            self.alog[i] = self.alog[i-1] * 2
+            if self.alog[i] >= self.gf:
+                self.alog[i] ^= self.pp
+            self.log[self.alog[i]] = i
 
-def gf_sum(a, b):
-    return a ^ b
+    def add(self, a, b):
+        return a ^ b
 
-def difference(a, b):
-    """The same as gf_sum in a GF256"""
-    return gf_sum(a, b)
+    def subtract(self, a, b):
+        """The same as add in a GF256"""
+        return self.add(a, b)
 
-def gf_product(a, b):
-    if (a == 0) or (b == 0):
-        return 0
-    else:
-        return alog[(log[a] + log[b]) % (GF - 1)]
+    def multiply(self, a, b):
+        if (a == 0) or (b == 0):
+            return 0
+        else:
+            return self.alog[(self.log[a] + self.log[b]) % (self.gf - 1)]
 
-def alpha_power(m):
-    return alog[m]
+    def alpha_power(self, a):
+        return self.alog[a]
 
-def alpha_log(m):
-    if m == 0:
-        raise Exception("InvalidArgument")
-    return log[m]
+    def alpha_log(self, a):
+        if a == 0:
+            raise Exception("InvalidArgument")
+        return self.log[a]
 
-def inverse(m):
-    """Multiplicative inverse of m"""
-    if m == 0:
-        raise Exception("InvalidArgument")
-    return alog[255 - log[m]]
+    def inverse(self, a):
+        """Multiplicative inverse of a"""
+        if a == 0:
+            raise Exception("InvalidArgument")
+        return self.alog[255 - self.log[a]]
 
-def gf_quotient(a, b):
-    """
-    int Quotient (int A, int B) { // namely A divided by B
-    if (B == 0) return (1-GF); // signifying an error!
-    else if (A == 0) return (0);
-    else return (ALog[(Log[A] - Log[B] + (GF-1)) % (GF-1)]);
-    """
-    if b == 0:
-        raise Exception("b must be != 0")
-    else:
-        return alog[(log[a] - log[b] + (GF - 1)) % (GF - 1)]
+    def quotient(self, a, b):
+        """
+        int Quotient (int A, int B) { // namely A divided by B
+        if (B == 0) return (1-GF); // signifying an error!
+        else if (A == 0) return (0);
+        else return (ALog[(Log[A] - Log[B] + (GF-1)) % (GF-1)]);
+        """
+        if b == 0:
+            raise Exception("b must be != 0")
+        else:
+            return self.alog[(self.log[a] - self.log[b] + (self.gf - 1)) % (self.gf - 1)]
 
+    def build_monomial(self, degree, coefficient):
+        if degree < 0:
+            raise Exception("Degree must be positive")
+        if coefficient == 0:
+            return 0
+        coefficients = array('i', [0] * (degree + 1))
+        coefficients[0] = coefficient
+        return GF256Poly(self, coefficients)
 
-def build_monomial(degree, coefficient):
-    if degree < 0:
-        raise Exception("Degree must be positive")
-    if coefficient == 0:
-        return 0
-    coefficients = array('i', [0] * (degree + 1))
-    coefficients[0] = coefficient
-    return GF256Poly(coefficients)
+    def get_zero(self):
+        return GF256Poly(self, array('i', [0]))
 
-def get_zero():
-    return GF256Poly([0])
-
-def get_one():
-    return GF256Poly([1])
-
-def test_build_monomial():
-    assert build_monomial(3, 5).coefficients == array('i', [5,0,0,0])
-    assert build_monomial(6, 0) == 0
+    def get_one(self):
+        return GF256Poly(self, array('i', [1]))
 
 
 class GF256Poly(object):
-    def __init__(self, coefficients):
+    def __init__(self, field, coefficients):
         """A polynomial in a GF256 Field"""
         self.length = len(coefficients)
+        self.field = field
 
-        if (len(coefficients) > 1) and (coefficients[0] == 0):
+        if (self.length > 1) and (coefficients[0] == 0):
             first_non_zero = 1
-            while (first_non_zero < len(coefficients)) and (coefficients[first_non_zero] == 0):
+            while (first_non_zero < self.length) and (coefficients[first_non_zero] == 0):
                 first_non_zero += 1
             if first_non_zero == self.length:
-                self.coefficients = get_zero().coefficients
+                self.coefficients = self.field.get_zero().coefficients
             else:
                 self.coefficients = array('i', coefficients[first_non_zero:])
         else:
             self.coefficients = array('i', coefficients)
 
     def __str__(self):
-        return "GFPoly(" + str(self.coefficients) + ")"
+        return "GFPoly(" + str(self.coefficients.tolist()) + ")"
+
+    def __repr__(self):
+        return self.__str__()
 
     def get_coefficients(self):
         return self.coefficients
@@ -121,15 +122,17 @@ class GF256Poly(object):
         if m == 1:
             result = 0
             for i in range(self.length):
-                result = gf_sum(result, self.coefficients[i])
+                result = self.field.add(result, self.coefficients[i])
             return result
         result = self.coefficients[0]
         for i in [x+1 for x in range(self.length)]:
-            result = gf_sum(gf_product(m, result),
+            result = self.field.add(self.field.multiply(m, result),
                     self.coefficients[i])
         return result
 
     def __add__(self, other):
+        if self.field != other.field:
+            raise Exception("GF256Polys do not have same Galois Field")
         if self.is_zero():
             return other
         if other.is_zero():
@@ -146,14 +149,16 @@ class GF256Poly(object):
         sum_diff[0:length_diff] = larger_coefficients[0:length_diff]
         
         for i in range(length_diff, len(larger_coefficients)):
-            sum_diff[i] = gf_sum(smaller_coefficients[i - length_diff],
+            sum_diff[i] = self.field.add(smaller_coefficients[i - length_diff],
                     larger_coefficients[i])
 
-        return GF256Poly(sum_diff)
+        return GF256Poly(self.field, sum_diff)
 
     def __mul__(self, other):
+        if self.field != other.field:
+            raise Exception("GF256Polys do not have same Galois Field")
         if self.is_zero() or other.is_zero():
-            return get_zero()
+            return self.field.get_zero()
 
         a_coefficients = self.coefficients
         a_length = self.length
@@ -164,79 +169,71 @@ class GF256Poly(object):
         for i in range(a_length):
             a_coeff = a_coefficients[i]
             for j in range(b_length):
-                product[i + j] = gf_sum(product[i + j],
-                        gf_product(a_coeff, b_coefficients[j]))
+                product[i + j] = self.field.add(product[i + j],
+                        self.field.multiply(a_coeff, b_coefficients[j]))
 
-        return GF256Poly(product)
+        return GF256Poly(self.field, product)
 
     def multiply_by_monomial(self, degree, coefficient):
         if degree < 0:
             raise Exception("Degree must be positive")
         if coefficient == 0:
-            return get_zero()
+            return self.field.get_zero()
         size = self.length
         product = [0] * (size + degree)
         for i in range(size):
-            product[i] = gf_product(self.coefficients[i],
+            product[i] = self.field.multiply(self.coefficients[i],
                     coefficient)
 
-        return GF256Poly(product)
+        return GF256Poly(self.field, product)
 
     def divide(self, other):
+        if self.field != other.field:
+            raise Exception("GF256Polys do not have same Galois Field")
         if other.is_zero():
             raise Exception("Cannot divide by 0")
 
-        quotient = get_zero()
+        quotient = self.field.get_zero()
         remainder = self
 
         denominator_leading_term = other.get_coefficient(other.get_degree())
-        inverse_denominator_leading_term = inverse(denominator_leading_term)
+        inverse_denominator_leading_term = self.field.inverse(denominator_leading_term)
 
         while remainder.get_degree() >= other.get_degree() and not remainder.is_zero():
             degree_difference = remainder.get_degree() - other.get_degree()
-            scale = gf_product(
+            scale = self.field.multiply(
                     remainder.get_coefficient(remainder.get_degree()),
                     inverse_denominator_leading_term)
-            print "scale:", scale
             term = other.multiply_by_monomial(degree_difference, scale)
-            print "term:", term
-            iteration_quotient = build_monomial(degree_difference, scale)
-            print "iteration_quotient:", iteration_quotient
+            iteration_quotient = self.field.build_monomial(degree_difference, scale)
 
-            quotient = quotient + iteration_quotient
-            print "quotient:", quotient
-            remainder = remainder + term
+            quotient += iteration_quotient
+            remainder += term
             print "remainder:", remainder
 
         return quotient, remainder
 
 
-def test_gf_sum():
-    assert gf_sum(141, 43) == 166
-    assert gf_sum(43, 178) == difference(43, 178)
+def test_gf_add():
+    gf = GaloisField()
+    assert gf.add(141, 43) == 166
+    assert gf.add(43, 178) == gf.subtract(43, 178)
 
-def test_power():
-    fill_log_arrays()
-    assert alpha_power(0) == 1
-    assert alpha_power(1) == 2
-    print alpha_power(8)
-    assert alpha_power(9) == 58
+def test_gf_alpha_power():
+    gf = GaloisField()
+    assert gf.alpha_power(0) == 1
+    assert gf.alpha_power(1) == 2
+    assert gf.alpha_power(9) == 58
 
-def test_gf_product():
-    """This must be the last test called as we are changing the prime
-    polynomial"""
-    global PP
-    PP = 301
-    fill_log_arrays()
-    p = gf_product(14, 33)
-    assert p == 227
+def test_gf_multiply():
+    gf = GaloisField(256, 301)
+    assert gf.multiply(14, 33) == 227
 
 def main():
-    #fill_log_arrays()
+    gf = GaloisField(256, 301)
     for n in range(9):
-        print n, '\t', alpha_power(n)
+        print n, '\t', gf.alpha_power(n)
 
-fill_log_arrays()
 
 if __name__ == '__main__':
     main()
