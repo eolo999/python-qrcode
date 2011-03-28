@@ -37,6 +37,22 @@ class Encoder(object):
                 self.error_correction_level)
         self.encode()
 
+    def apply_error_correction(self):
+        # how_many_blocks and how many error correctioin words =>
+        #   query ISO spec tables 13-22
+        #
+        # divide data codewords per num of blocks
+        #
+        # find generator polynomial for every codeblock =>
+        #   query ISO spec tables A.1-A.7
+        # get coefficients evaluating alpha_powers
+        # 
+        # divide every data block by its generator polynomial
+        # the coefficients of the remainder are the error-correction codewords
+        # join all data/error-correction blocks
+        pass
+        
+
     def encode(self):
         self.convert_data()
         self.codewords = self._bitstream_to_codewords()
@@ -44,7 +60,7 @@ class Encoder(object):
                 self.error_correction_level)
         self.fill_symbol_with_pad_codewords(max_codewords -
                 len(self.codewords))
-        # apply_error_correction
+        self.apply_error_correction()
         # apply mask
         # matrix position
         # draw symbol

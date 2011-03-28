@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 __doc__ = """
-I found this little pearl (
+I found this little pearl:
 http://www.aimglobal.org/technologies/barcode/Galois_Math.pdf) on which I
 based the following mess.
 """
@@ -51,7 +51,7 @@ def inverse(m):
         raise Exception("InvalidArgument")
     return alog[255 - log[m]]
 
-def quotient(a, b):
+def gf_quotient(a, b):
     """
     int Quotient (int A, int B) { // namely A divided by B
     if (B == 0) return (1-GF); // signifying an error!
@@ -98,7 +98,7 @@ class GF256Poly(object):
             else:
                 self.coefficients = array('i', coefficients[first_non_zero:])
         else:
-            self.coefficients = coefficients
+            self.coefficients = array('i', coefficients)
 
     def __str__(self):
         return "GFPoly(" + str(self.coefficients) + ")"
@@ -129,12 +129,12 @@ class GF256Poly(object):
                     self.coefficients[i])
         return result
 
-    def add(self, other):
+    def __add__(self, other):
         if self.is_zero():
             return other
         if other.is_zero():
             return self
-        if self.length > other.length:
+        if other.length > self.length:
             smaller_coefficients = self.coefficients
             larger_coefficients = other.coefficients
         else:
@@ -151,7 +151,7 @@ class GF256Poly(object):
 
         return GF256Poly(sum_diff)
 
-    def multiply(self, other):
+    def __mul__(self, other):
         if self.is_zero() or other.is_zero():
             return get_zero()
 
@@ -197,11 +197,16 @@ class GF256Poly(object):
             scale = gf_product(
                     remainder.get_coefficient(remainder.get_degree()),
                     inverse_denominator_leading_term)
+            print "scale:", scale
             term = other.multiply_by_monomial(degree_difference, scale)
+            print "term:", term
             iteration_quotient = build_monomial(degree_difference, scale)
+            print "iteration_quotient:", iteration_quotient
 
-            quotient = quotient.add(iteration_quotient)
-            remainder = remainder.add(term)
+            quotient = quotient + iteration_quotient
+            print "quotient:", quotient
+            remainder = remainder + term
+            print "remainder:", remainder
 
         return quotient, remainder
 
