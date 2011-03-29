@@ -9,7 +9,7 @@ based the following mess.
 from array import array
 
 class GaloisField(object):
-    def __init__(self, galois_field =256, primitive_polynomial_as_int=285):
+    def __init__(self, galois_field=256, primitive_polynomial_as_int=285):
         self.pp = primitive_polynomial_as_int
         self.gf = galois_field
         self.log = array('i', [0] * self.gf)
@@ -30,7 +30,7 @@ class GaloisField(object):
         return a ^ b
 
     def subtract(self, a, b):
-        """The same as add in a GF256"""
+        """The same as add in a GF"""
         return self.add(a, b)
 
     def multiply(self, a, b):
@@ -54,12 +54,6 @@ class GaloisField(object):
         return self.alog[255 - self.log[a]]
 
     def quotient(self, a, b):
-        """
-        int Quotient (int A, int B) { // namely A divided by B
-        if (B == 0) return (1-GF); // signifying an error!
-        else if (A == 0) return (0);
-        else return (ALog[(Log[A] - Log[B] + (GF-1)) % (GF-1)]);
-        """
         if b == 0:
             raise Exception("b must be != 0")
         else:
@@ -72,16 +66,16 @@ class GaloisField(object):
             return 0
         coefficients = array('i', [0] * (degree + 1))
         coefficients[0] = coefficient
-        return GF256Poly(self, coefficients)
+        return GFPoly(self, coefficients)
 
     def get_zero(self):
-        return GF256Poly(self, array('i', [0]))
+        return GFPoly(self, array('i', [0]))
 
     def get_one(self):
-        return GF256Poly(self, array('i', [1]))
+        return GFPoly(self, array('i', [1]))
 
 
-class GF256Poly(object):
+class GFPoly(object):
     def __init__(self, field, coefficients):
         """A polynomial in a GF256 Field"""
         self.length = len(coefficients)
@@ -132,7 +126,7 @@ class GF256Poly(object):
 
     def __add__(self, other):
         if self.field != other.field:
-            raise Exception("GF256Polys do not have same Galois Field")
+            raise Exception("GFPolys do not have same Galois Field")
         if self.is_zero():
             return other
         if other.is_zero():
@@ -152,11 +146,11 @@ class GF256Poly(object):
             sum_diff[i] = self.field.add(smaller_coefficients[i - length_diff],
                     larger_coefficients[i])
 
-        return GF256Poly(self.field, sum_diff)
+        return GFPoly(self.field, sum_diff)
 
     def __mul__(self, other):
         if self.field != other.field:
-            raise Exception("GF256Polys do not have same Galois Field")
+            raise Exception("GFPolys do not have same Galois Field")
         if self.is_zero() or other.is_zero():
             return self.field.get_zero()
 
@@ -172,7 +166,7 @@ class GF256Poly(object):
                 product[i + j] = self.field.add(product[i + j],
                         self.field.multiply(a_coeff, b_coefficients[j]))
 
-        return GF256Poly(self.field, product)
+        return GFPoly(self.field, product)
 
     def multiply_by_monomial(self, degree, coefficient):
         if degree < 0:
@@ -185,11 +179,11 @@ class GF256Poly(object):
             product[i] = self.field.multiply(self.coefficients[i],
                     coefficient)
 
-        return GF256Poly(self.field, product)
+        return GFPoly(self.field, product)
 
     def divide(self, other):
         if self.field != other.field:
-            raise Exception("GF256Polys do not have same Galois Field")
+            raise Exception("GFPolys do not have same Galois Field")
         if other.is_zero():
             raise Exception("Cannot divide by 0")
 
