@@ -119,7 +119,7 @@ class GFPoly(object):
                 result = self.field.add(result, self.coefficients[i])
             return result
         result = self.coefficients[0]
-        for i in [x+1 for x in range(self.length)]:
+        for i in [x + 1 for x in range(self.length)]:
             result = self.field.add(self.field.multiply(m, result),
                     self.coefficients[i])
         return result
@@ -127,6 +127,7 @@ class GFPoly(object):
     def __add__(self, other):
         if self.field != other.field:
             raise Exception("GFPolys do not have same Galois Field")
+
         if self.is_zero():
             return other
         if other.is_zero():
@@ -138,12 +139,13 @@ class GFPoly(object):
             larger_coefficients = self.coefficients
             smaller_coefficients = other.coefficients
 
-        sum_diff = [0] * len(larger_coefficients)
-        length_diff = len(larger_coefficients) - len(smaller_coefficients)
-        sum_diff[0:length_diff] = larger_coefficients[0:length_diff]
+
+        sum_diff = array('i', [0] * len(larger_coefficients))
+        degree_diff = len(larger_coefficients) - len(smaller_coefficients)
+        sum_diff[0:degree_diff] = larger_coefficients[0:degree_diff]
         
-        for i in range(length_diff, len(larger_coefficients)):
-            sum_diff[i] = self.field.add(smaller_coefficients[i - length_diff],
+        for i in range(degree_diff, len(larger_coefficients)):
+            sum_diff[i] = self.field.add(smaller_coefficients[i - degree_diff],
                     larger_coefficients[i])
 
         return GFPoly(self.field, sum_diff)
@@ -158,7 +160,7 @@ class GFPoly(object):
         a_length = self.length
         b_coefficients = other.coefficients
         b_length = other.length
-        product = [0] * (a_length + b_length - 1)
+        product = array('i', [0] * (a_length + b_length - 1))
 
         for i in range(a_length):
             a_coeff = a_coefficients[i]
@@ -171,10 +173,11 @@ class GFPoly(object):
     def multiply_by_monomial(self, degree, coefficient):
         if degree < 0:
             raise Exception("Degree must be positive")
+
         if coefficient == 0:
             return self.field.get_zero()
         size = self.length
-        product = [0] * (size + degree)
+        product = array('i', [0] * (size + degree))
         for i in range(size):
             product[i] = self.field.multiply(self.coefficients[i],
                     coefficient)
@@ -203,7 +206,7 @@ class GFPoly(object):
 
             quotient += iteration_quotient
             remainder += term
-            print "remainder:", remainder
+            #print "remainder(%d):" % remainder.get_degree(), remainder
 
         return quotient, remainder
 
