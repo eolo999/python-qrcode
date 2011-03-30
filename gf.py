@@ -7,6 +7,22 @@ based the following mess.
 """
 
 from array import array
+from numpy import poly1d
+import numpy.core.numeric as NX
+
+
+def gf_polyadd(a1, a2):
+    diff = len(a2) - len(a1)
+    if diff == 0:
+        val = [GaloisField.add(x,y) for x,y in zip(a1,a2)]
+    elif diff > 0:
+        zr = NX.zeros(diff, a1.dtype)
+        val = [GaloisField.add(x,y) for x,y in zip(NX.concatenate((zr, a1)), a2)]
+    else:
+        zr = NX.zeros(abs(diff), a2.dtype)
+        val = [GaloisField.add(x,y) for x,y in zip(a1, NX.concatenate((zr, a2)))]
+    return val
+
 
 class GaloisField(object):
     def __init__(self, galois_field=256, primitive_polynomial_as_int=285):
@@ -14,7 +30,6 @@ class GaloisField(object):
         self.gf = galois_field
         self.log = array('i', [0] * self.gf)
         self.alog = array('i', [0] * self.gf)
-
         self.fill_log_arrays()
 
     def fill_log_arrays(self):
@@ -27,7 +42,7 @@ class GaloisField(object):
             self.log[self.alog[i]] = i
 
     def add(self, a, b):
-        return a ^ b
+        return int(a) ^ int(b)
 
     def subtract(self, a, b):
         """The same as add in a GF"""
@@ -132,23 +147,19 @@ class GFPoly(object):
             return other
         if other.is_zero():
             return self
-        if other.length > self.length:
-            smaller_coefficients = self.coefficients
-            larger_coefficients = other.coefficients
+
+        diff = other.length - self.length
+        if diff == 0:
+            val = [self.field.add(x,y) for x,y in zip(self.coefficients, other.coefficients)]
+        elif diff > 0:
+            zr = NX.zeros(diff)
+            val = [self.field.add(x,y) for x,y in zip(NX.concatenate((zr, self.field)), other.field)]
         else:
-            larger_coefficients = self.coefficients
-            smaller_coefficients = other.coefficients
+            zr = NX.zeros(abs(diff))
+            val = [self.field.add(x,y) for x,y in zip(self.coefficients, NX.concatenate((zr, other.coefficients)))]
 
-
-        sum_diff = array('i', [0] * len(larger_coefficients))
-        degree_diff = len(larger_coefficients) - len(smaller_coefficients)
-        sum_diff[0:degree_diff] = larger_coefficients[0:degree_diff]
-        
-        for i in range(degree_diff, len(larger_coefficients)):
-            sum_diff[i] = self.field.add(smaller_coefficients[i - degree_diff],
-                    larger_coefficients[i])
-
-        return GFPoly(self.field, sum_diff)
+        val = GFPoly(self.field, val)
+        return val
 
     def __mul__(self, other):
         if self.field != other.field:
@@ -196,7 +207,8 @@ class GFPoly(object):
         denominator_leading_term = other.get_coefficient(other.get_degree())
         inverse_denominator_leading_term = self.field.inverse(denominator_leading_term)
 
-        while remainder.get_degree() >= other.get_degree() and not remainder.is_zero():
+        while remainder.get_degree() > other.get_degree() and (not
+                remainder.is_zero()):
             degree_difference = remainder.get_degree() - other.get_degree()
             scale = self.field.multiply(
                     remainder.get_coefficient(remainder.get_degree()),
