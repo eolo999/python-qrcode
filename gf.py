@@ -7,22 +7,6 @@ based the following mess.
 """
 
 from array import array
-from numpy import poly1d
-import numpy.core.numeric as NX
-
-
-def gf_polyadd(a1, a2):
-    diff = len(a2) - len(a1)
-    if diff == 0:
-        val = [GaloisField.add(x,y) for x,y in zip(a1,a2)]
-    elif diff > 0:
-        zr = NX.zeros(diff, a1.dtype)
-        val = [GaloisField.add(x,y) for x,y in zip(NX.concatenate((zr, a1)), a2)]
-    else:
-        zr = NX.zeros(abs(diff), a2.dtype)
-        val = [GaloisField.add(x,y) for x,y in zip(a1, NX.concatenate((zr, a2)))]
-    return val
-
 
 class GaloisField(object):
     def __init__(self, galois_field=256, primitive_polynomial_as_int=285):
@@ -152,11 +136,11 @@ class GFPoly(object):
         if diff == 0:
             val = [self.field.add(x,y) for x,y in zip(self.coefficients, other.coefficients)]
         elif diff > 0:
-            zr = NX.zeros(diff)
-            val = [self.field.add(x,y) for x,y in zip(NX.concatenate((zr, self.field)), other.field)]
+            zr = array('i', [0] * diff)
+            val = [self.field.add(x,y) for x,y in zip(zr + self.coefficients, other.coefficients)]
         else:
-            zr = NX.zeros(abs(diff))
-            val = [self.field.add(x,y) for x,y in zip(self.coefficients, NX.concatenate((zr, other.coefficients)))]
+            zr = array('i', [0] * abs(diff))
+            val = [self.field.add(x,y) for x,y in zip(self.coefficients, zr + other.coefficients)]
 
         val = GFPoly(self.field, val)
         return val
