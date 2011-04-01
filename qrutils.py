@@ -1,4 +1,8 @@
 from qrreference import alphanumeric_codes
+from rs_generator_polynomials import generator_polynomials
+from gf import GFPoly, GaloisField
+
+gf256 = GaloisField()
 
 def split_numeric_input(input):
     splitted_data = []
@@ -68,3 +72,9 @@ def to_coeff(codeword):
         count -= 1
     return result
 
+def reed_solomon(coefficients, num_of_ec_words):
+    num = GFPoly(gf256, coefficients).multiply_by_monomial(num_of_ec_words, 1)
+    den = GFPoly(gf256, [gf256.alpha_power(x) for x in
+        generator_polynomials[num_of_ec_words]])
+    q, rem = num.divide(den)
+    return rem
