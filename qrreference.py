@@ -9,7 +9,7 @@ side_lengths = range(21, 181, 4)
 # ISO/IEC 18004 - Table 1 (partial)
 symbol_sizes = dict(zip(symbol_versions, side_lengths))
 
-# ISO/IEC 18004 - Table 2
+# ISO/IEC 18004 - Table 3
 num_of_bits_character_count_indicator = {}
 for version in symbol_versions:
     num_of_bits_character_count_indicator[version] = {}
@@ -48,18 +48,35 @@ alphanumeric_char_values = dict([(x[1], x[0]) for x in enumerate(digits +
 symbol_version_data = {
         1:  {
             'data_capacity': 26,
-            'data_codewords': {'L': 19, 'M': 16, 'Q': 13, 'H': 9},
-            'remainder_bits': 0,
-            },
+            'ecl': {
+                'L': {'data_codewords': 19, 'blocks': 1},
+                'M': {'data_codewords': 16, 'blocks': 1},
+                'Q': {'data_codewords': 13, 'blocks': 1},
+                'H': {'data_codewords': 9, 'blocks': 1}},
+            'remainder_bits': 0},
         2:  {
             'data_capacity': 44,
-            'data_codewords': {'L': 34, 'M': 28, 'Q': 22, 'H': 16},
-            'remainder_bits': 7,
-            },
+            'ecl': {
+                'L': {'data_codewords': 34, 'blocks': 1},
+                'M': {'data_codewords': 28, 'blocks': 1},
+                'Q': {'data_codewords': 22, 'blocks': 1},
+                'H': {'data_codewords': 16, 'blocks': 1}},
+            'remainder_bits': 7},
         3:  {
             'data_capacity': 70,
-            'data_codewords': {'L': 55, 'M': 44, 'Q': 34, 'H': 26},
+            'ecl': {
+                'L': {'data_codewords': 55, 'blocks': 1},
+                'M': {'data_codewords': 44, 'blocks': 1},
+                # 70 - 34 = 36 (ec_words)
+                # 36 / 2 = 18
+                # (17 code words + 18 ec_words) * 2 = 70 words
+                'Q': {'data_codewords': 34, 'blocks': 2},
+                # 70 - 26 = 44
+                # 44 / 2 = 22
+                # (13 + 22) * 2 = 70
+                'H': {'data_codewords': 26, 'blocks': 2}},
             'remainder_bits': 7,
+            'error_correction_blocks': 1
             },
         4:  {
             'data_capacity': 100,
@@ -267,16 +284,19 @@ max_char_capacity = {
             5: {'L': 154, 'M': 122, 'Q': 87, 'H': 64},
             },
         }
-            
+
 
 def get_max_codewords(version, ecl):
-    return symbol_version_data[version]['data_codewords'][ecl]
+    return symbol_version_data[version]['ecl'][ecl]['data_codewords']
 
 def get_ec_codewords(version, ecl):
     return (
             symbol_version_data[version]['data_capacity'] -
-            symbol_version_data[version]['data_codewords'][ecl]
+            symbol_version_data[version]['ecl'][ecl]['data_codewords']
             )
+
+def get_ec_blocks(version, ecl):
+    return symbol_version_data[version]['ecl'][ecl]['blocks']
 
 def get_max_databits(version, ecl):
     return get_max_codewords(version, ecl) * 8

@@ -1,20 +1,26 @@
 # -*- coding: utf-8 -*-
 
+from array import array
+from numpy import array_split
+
+from qrutils import reed_solomon
+
 from qrutils import (
         convert_numeric,
         convert_alphanumeric,
+        list_to_coeff,
         bin,
-        pad
-        )
+        pad)
 
 from qrreference import (
         get_mode_indicators,
         get_num_of_bits_character_count_indicator,
         get_max_databits,
         get_max_codewords,
+        get_ec_codewords,
+        get_ec_blocks,
         )
 
-correction_levels = ['L', 'M', 'Q', 'H']
 
 class Encoder(object):
     def __init__(self,
@@ -31,27 +37,39 @@ class Encoder(object):
         self.mode_bits = get_mode_indicators(self.data_mode)
         self.count_bits = get_num_of_bits_character_count_indicator(
                 self.symbol_version,
-                self.data_mode
-                )
+                self.data_mode)
         self.symbol_capacity_bits = get_max_databits(self.symbol_version,
                 self.error_correction_level)
         self.encode()
 
     def apply_error_correction(self):
-        # how_many_blocks and how many error correctioin words =>
+        # how_many_blocks and how many error correction words =>
         #   query ISO spec tables 13-22
         #
         # divide data codewords per num of blocks
+        #  get num of blocks
+        blocks = int(get_ec_blocks(self.symbol_version,
+                self.error_correction_level))
+        print blocks
+        ec_codewords_per_block = get_ec_codewords(self.symbol_version,
+                self.error_correction_level) / blocks
+        code_blocks = array_split(array('i', list_to_coeff(self.codewords)), blocks)
+        ec_blocks = []
+        for code_block in code_blocks:
+            ec_blocks.append(reed_solomon(code_block, ec_codewords_per_block))
+        for i in range(len(code_blocks)):
+            print code_blocks[i], ec_blocks[i]
+        #  for each block calculate relative ec block
+        #  store the information in a comfortable data structure
         #
         # find generator polynomial for every codeblock =>
         #   query ISO spec tables A.1-A.7
         # get coefficients evaluating alpha_powers
-        # 
+        #
         # divide every data block by its generator polynomial
         # the coefficients of the remainder are the error-correction codewords
         # join all data/error-correction blocks
         pass
-        
 
     def encode(self):
         self.convert_data()
@@ -113,7 +131,9 @@ class Encoder(object):
             assert self.validate_alphanumeric_bitstream_length()
 
     def _insert_indicators(self):
-        indicators = self.mode_bits + bin(len(self.input_string), self.count_bits)
+        indicators = self.mode_bits + bin(
+                len(self.input_string),
+                self.count_bits)
         return indicators
 
     def validate_numeric_bitstream_length(self):
@@ -121,7 +141,9 @@ class Encoder(object):
         r = len(self.input_string) % 3
         if r != 0:
             r = r * 3 + 1
-        return len(self.code) == (4 + self.count_bits + 10 * (len(self.input_string)/3) + r)
+        return len(self.code) == (
+                4 + self.count_bits +
+                10 * (len(self.input_string) / 3) + r)
 
     def validate_alphanumeric_bitstream_length(self):
         """
