@@ -48,35 +48,16 @@ alphanumeric_char_values = dict([(x[1], x[0]) for x in enumerate(digits +
 symbol_version_data = {
         1:  {
             'data_capacity': 26,
-            'ecl': {
-                'L': {'data_codewords': 19, 'blocks': 1},
-                'M': {'data_codewords': 16, 'blocks': 1},
-                'Q': {'data_codewords': 13, 'blocks': 1},
-                'H': {'data_codewords': 9, 'blocks': 1}},
+            'data_codewords': {'L': 19, 'M': 16, 'Q': 13, 'H': 9},
             'remainder_bits': 0},
         2:  {
             'data_capacity': 44,
-            'ecl': {
-                'L': {'data_codewords': 34, 'blocks': 1},
-                'M': {'data_codewords': 28, 'blocks': 1},
-                'Q': {'data_codewords': 22, 'blocks': 1},
-                'H': {'data_codewords': 16, 'blocks': 1}},
+            'data_codewords': {'L': 34, 'M': 28, 'Q': 22, 'H': 16},
             'remainder_bits': 7},
         3:  {
             'data_capacity': 70,
-            'ecl': {
-                'L': {'data_codewords': 55, 'blocks': 1},
-                'M': {'data_codewords': 44, 'blocks': 1},
-                # 70 - 34 = 36 (ec_words)
-                # 36 / 2 = 18
-                # (17 code words + 18 ec_words) * 2 = 70 words
-                'Q': {'data_codewords': 34, 'blocks': 2},
-                # 70 - 26 = 44
-                # 44 / 2 = 22
-                # (13 + 22) * 2 = 70
-                'H': {'data_codewords': 26, 'blocks': 2}},
+            'data_codewords': {'L': 55, 'M': 44, 'Q': 34, 'H': 26},
             'remainder_bits': 7,
-            'error_correction_blocks': 1
             },
         4:  {
             'data_capacity': 100,
@@ -286,17 +267,106 @@ max_char_capacity = {
         }
 
 
+ecl_index = {'L': 0, 'M': 1, 'Q': 2, 'H': 3}
+
+# ISO/IEC 18004 - Table 13-22 (partial)
+blocks_per_ecl = {
+        1: [[19],
+            [16],
+            [13],
+            [9]],
+        
+        2: [[34],
+            [28],
+            [22],
+            [16]],
+
+        3: [[55],
+            [44],
+            [17, 17],
+            [13, 13]],
+
+        4: [[80],
+            [32, 32],
+            [24, 24],
+            [9] * 4],
+
+        5: [[108],
+            [43, 43],
+            [15, 15, 16, 16],
+            [11, 11, 12, 12]],
+
+        6: [[68, 68],
+            [27] * 4,
+            [19] * 4,
+            [15] * 4],
+
+        7: [[78, 78],
+            [31] * 4,
+            [14, 14] + [15] * 4,
+            [13] * 4 + [14]],
+
+        8: [[97, 97],
+            [38, 38, 39, 39],
+            [18] * 4 + [19, 19],
+            [14] * 4 + [15, 15]],
+
+        9: [[116, 116],
+            [36] * 3 + [37, 37],
+            [16] * 4 + [17] * 4,
+            [12] * 4 + [13] * 4],
+
+        10: [[68, 68, 69, 69],
+            [43] * 4 + [44],
+            [19] * 6 + [20, 20],
+            [15] * 6 + [16, 16]],
+
+        11: [[81] * 4,
+            [50] + [51] * 4,
+            [22] * 4 + [23] * 4,
+            [12] * 3 + [13] * 8],
+
+        12: [[92, 92, 93, 93],
+            [36] * 6 + [37, 37],
+            [20] * 4 + [21] * 6,
+            [14] * 7 + [15] * 4],
+
+        13: [[107] * 4,
+            [37] * 8 + [38],
+            [20] * 8 + [21] * 4,
+            [11] * 12 + [12] * 4],
+
+        14: [[115] * 3 + [116],
+            [40] * 4 + [41] * 5,
+            [16] * 11 + [17] * 5,
+            [12] * 11 + [13] * 5],
+
+        15: [[87] * 5 + [88],
+            [41] * 5 + [42] * 5,
+            [24] * 5 + [25] * 7,
+            [12] * 11 + [13] * 7],
+
+        16: [[98] * 5 + [99],
+            [45] * 7 + [46] * 3,
+            [19] * 15 + [20, 20],
+            [15] * 3 + [16] * 13],
+
+        17: [[107] + [108] * 5,
+            [46] * 10 + [47],
+            [22] + [23] * 15,
+            [14] * 2 + [15] * 17]
+        }
+
+def get_blocks(version, ecl):
+    return blocks_per_ecl[version][ecl_index[ecl]]
+
 def get_max_codewords(version, ecl):
-    return symbol_version_data[version]['ecl'][ecl]['data_codewords']
+    return symbol_version_data[version]['data_codewords'][ecl]
 
 def get_ec_codewords(version, ecl):
     return (
             symbol_version_data[version]['data_capacity'] -
-            symbol_version_data[version]['ecl'][ecl]['data_codewords']
-            )
-
-def get_ec_blocks(version, ecl):
-    return symbol_version_data[version]['ecl'][ecl]['blocks']
+            symbol_version_data[version]['data_codewords'][ecl])
 
 def get_max_databits(version, ecl):
     return get_max_codewords(version, ecl) * 8
@@ -315,5 +385,4 @@ def alphanumeric_codes(input):
     for ch in input:
         codes.append(alphanumeric_char_values[upper(ch)])
     return codes
-
 

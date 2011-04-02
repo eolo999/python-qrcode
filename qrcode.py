@@ -1,14 +1,11 @@
 # -*- coding: utf-8 -*-
 
-from array import array
-from numpy import array_split
-
-from qrutils import reed_solomon
 
 from qrutils import (
         convert_numeric,
         convert_alphanumeric,
         list_to_coeff,
+        reed_solomon,
         bin,
         pad)
 
@@ -18,7 +15,7 @@ from qrreference import (
         get_max_databits,
         get_max_codewords,
         get_ec_codewords,
-        get_ec_blocks,
+        get_blocks,
         )
 
 
@@ -40,36 +37,9 @@ class Encoder(object):
                 self.data_mode)
         self.symbol_capacity_bits = get_max_databits(self.symbol_version,
                 self.error_correction_level)
+        self.data_blocks = []
+        self.ec_blocks = []
         self.encode()
-
-    def apply_error_correction(self):
-        # how_many_blocks and how many error correction words =>
-        #   query ISO spec tables 13-22
-        #
-        # divide data codewords per num of blocks
-        #  get num of blocks
-        blocks = int(get_ec_blocks(self.symbol_version,
-                self.error_correction_level))
-        print blocks
-        ec_codewords_per_block = get_ec_codewords(self.symbol_version,
-                self.error_correction_level) / blocks
-        code_blocks = array_split(array('i', list_to_coeff(self.codewords)), blocks)
-        ec_blocks = []
-        for code_block in code_blocks:
-            ec_blocks.append(reed_solomon(code_block, ec_codewords_per_block))
-        for i in range(len(code_blocks)):
-            print code_blocks[i], ec_blocks[i]
-        #  for each block calculate relative ec block
-        #  store the information in a comfortable data structure
-        #
-        # find generator polynomial for every codeblock =>
-        #   query ISO spec tables A.1-A.7
-        # get coefficients evaluating alpha_powers
-        #
-        # divide every data block by its generator polynomial
-        # the coefficients of the remainder are the error-correction codewords
-        # join all data/error-correction blocks
-        pass
 
     def encode(self):
         self.convert_data()
@@ -78,10 +48,26 @@ class Encoder(object):
                 self.error_correction_level)
         self.fill_symbol_with_pad_codewords(max_codewords -
                 len(self.codewords))
+
         self.apply_error_correction()
         # apply mask
         # matrix position
         # draw symbol
+
+    def apply_error_correction(self):
+        index = 0
+        cw = list_to_coeff(self.codewords)
+        code_blocks_num = get_blocks(self.symbol_version,
+                self.error_correction_level)
+        for cb in code_blocks_num:
+            self.data_blocks.append(cw[index:index + cb])
+            index += cb
+
+        ec_codewords_per_block = get_ec_codewords(self.symbol_version,
+                self.error_correction_level) / len(self.data_blocks)
+
+        for code_block in self.data_blocks:
+            self.ec_blocks.append(reed_solomon(code_block, ec_codewords_per_block))
 
     def fill_symbol_with_pad_codewords(self, num_of_codewords):
         pad0 = '11101100'

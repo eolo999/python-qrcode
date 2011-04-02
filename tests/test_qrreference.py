@@ -3,19 +3,7 @@ sys.path.append('..')
 
 from nose.tools import raises
 
-from qrreference import (
-        get_num_of_bits_character_count_indicator,
-        get_qr_size,
-        get_mode_indicators,
-        get_max_codewords,
-        get_ec_codewords,
-        get_ec_blocks,
-        alphanumeric_codes
-        )
-
-def test_get_ec_blocks():
-    assert get_ec_blocks(3, 'Q') == 2
-    assert get_ec_blocks(1, 'H') == 1
+from qrreference import *
 
 def test_qr_size():
     assert get_qr_size(23) == 109
@@ -44,3 +32,10 @@ def test_get_max_codewords():
 
 def test_get_ec_codewords():
     assert get_ec_codewords(1, 'H') == 17
+
+def test_block_per_ecl_lengths():
+    for key in blocks_per_ecl:
+        assert len(blocks_per_ecl[key]) == 4
+
+def test_split():
+    assert get_blocks(1, 'L') == [19]
