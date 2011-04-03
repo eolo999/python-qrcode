@@ -31,7 +31,7 @@ def split_alphanumeric_input(input):
         splitted_data.append(tmp_list)
     return splitted_data
 
-def bin(x, width):
+def bin(x, width=8):
     return ''.join(str((x>>i)&1) for i in xrange(width-1,-1,-1))
 
 def pad(bit_string, length):
@@ -59,6 +59,9 @@ def convert_alphanumeric(input):
             data_bit_stream += bin(input[0], 6)
     return data_bit_stream
 
+def list_to_bin(coefficients_list):
+    return map(bin, coefficients_list)
+
 def list_to_coeff(codewords_list):
     coeff = map(to_coeff, codewords_list)
     return coeff
@@ -77,4 +80,4 @@ def reed_solomon(coefficients, num_of_ec_words):
     den = GFPoly(gf256, [gf256.alpha_power(x) for x in
         generator_polynomials[num_of_ec_words]])
     q, rem = num.divide(den)
-    return rem
+    return rem.coefficients

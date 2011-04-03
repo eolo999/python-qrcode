@@ -39,6 +39,8 @@ class Encoder(object):
                 self.error_correction_level)
         self.data_blocks = []
         self.ec_blocks = []
+        self.final_sequence = []
+
         self.encode()
 
     def encode(self):
@@ -50,6 +52,7 @@ class Encoder(object):
                 len(self.codewords))
 
         self.apply_error_correction()
+        self.create_final_sequence()
         # apply mask
         # matrix position
         # draw symbol
@@ -68,6 +71,17 @@ class Encoder(object):
 
         for code_block in self.data_blocks:
             self.ec_blocks.append(reed_solomon(code_block, ec_codewords_per_block))
+
+    def create_final_sequence(self):
+        for i in range(max([len(x) for x in self.data_blocks])):
+            for data_block in self.data_blocks:
+                try:
+                    self.final_sequence.append(data_block[i])
+                except IndexError:
+                    pass
+        for i in range(len(self.ec_blocks[0])):
+            for ec_block in self.ec_blocks:
+                self.final_sequence.append(ec_block[i])
 
     def fill_symbol_with_pad_codewords(self, num_of_codewords):
         pad0 = '11101100'
