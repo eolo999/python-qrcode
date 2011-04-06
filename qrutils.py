@@ -31,8 +31,13 @@ def split_alphanumeric_input(input):
         splitted_data.append(tmp_list)
     return splitted_data
 
-def bin(x, width=8):
-    return ''.join(str((x>>i)&1) for i in xrange(width-1,-1,-1))
+def to_binstring(decimal_number, length=8):
+    """Convert a decimal number to a binary string with a fixed length.
+
+    Attention: if the string length is shorter than the real binary
+    representation of the number data is lost during conversion.
+    """
+    return ''.join(str((decimal_number >> i) & 1) for i in range(length - 1, -1, -1))
 
 def pad(bit_string, length):
     zeroes = length - len(bit_string)
@@ -45,7 +50,7 @@ def convert_numeric(input):
     data_bit_stream = ''
     for input in splitted_input:
         len_input = len(input)
-        data_bit_stream += bin(int(input), (len_input * 3) + 1)
+        data_bit_stream += to_binstring(int(input), (len_input * 3) + 1)
     return data_bit_stream
 
 def convert_alphanumeric(input):
@@ -54,9 +59,9 @@ def convert_alphanumeric(input):
     data_bit_stream = ''
     for input in splitted_input:
         if len(input) == 2:
-            data_bit_stream += bin(input[0]*45+input[1], 11)
+            data_bit_stream += to_binstring(input[0]*45+input[1], 11)
         else:
-            data_bit_stream += bin(input[0], 6)
+            data_bit_stream += to_binstring(input[0], 6)
     return data_bit_stream
 
 def list_to_bin(coefficients_list):

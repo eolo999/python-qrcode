@@ -6,7 +6,7 @@ from qrutils import (
         convert_alphanumeric,
         list_to_coeff,
         reed_solomon,
-        bin,
+        to_binstring,
         pad)
 
 from qrreference import (
@@ -131,13 +131,12 @@ class Encoder(object):
             assert self.validate_alphanumeric_bitstream_length()
 
     def _insert_indicators(self):
-        indicators = self.mode_bits + bin(
+        indicators = self.mode_bits + to_binstring(
                 len(self.input_string),
                 self.count_bits)
         return indicators
 
     def validate_numeric_bitstream_length(self):
-        #to be implemented
         r = len(self.input_string) % 3
         if r != 0:
             r = r * 3 + 1
