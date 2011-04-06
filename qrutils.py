@@ -23,7 +23,9 @@ def split_numeric_input(input):
 
 def split_alphanumeric_input(input):
     """Split the input string in a list of strings as specified in ISO/IEC
-    18004 8.4.3"""
+    18004 8.4.3: Input data characters are divided into groups of two
+    characters.
+    """
     splitted_data = []
     tmp_list = []
     for i in range(1, len(input) + 1):
@@ -49,6 +51,8 @@ def to_binstring(decimal_number, length=8):
 
 
 def pad(bit_string, length):
+    """Add a series of zeroes to a bit string up to 'length'.
+    """
     zeroes = length - len(bit_string)
     if zeroes < 0:
         raise Exception("Bit string is longer than padding")
@@ -71,6 +75,14 @@ def convert_numeric(input):
 
 
 def convert_alphanumeric(input):
+    """ISO/IEC 18004 8.4.3: Input data characters are divided into groups of
+    two characters which are encoded to 11-bit binary codes. The character
+    value of the first character is multiplied by 45 and the character value
+    of the second digit is added to the product. The sum is then converted to
+    an 11 bit binary number. If the number of input data characters is not a
+    multiple of two, the character value of the final character is encoded to
+    a 6-bit binary number.
+    """
     input = alphanumeric_codes(input)
     splitted_input = split_alphanumeric_input(input)
     data_bit_stream = ''
