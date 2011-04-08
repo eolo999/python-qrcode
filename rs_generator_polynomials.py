@@ -1,4 +1,11 @@
 # thanks Bram
+
+# The check character generation polynomial is used to divide the data
+# codeword polynomial, where each codeword is the coefficient of the dividend
+# polynomial in descending power order. The coefficients of the remainder of
+# this division are the error correction codeword values.  
+
+# ISO/IEC 18004 Tables A.1-7
 generator_polynomials = {
 7: [0, 87, 229, 146, 149, 238, 102, 21],
 
@@ -66,7 +73,3 @@ generator_polynomials = {
 
 }
 
-def test_generator_polynomials_length():
-    for key in generator_polynomials:
-        print key
-        assert len(generator_polynomials[key]) == key + 1
