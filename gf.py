@@ -1,11 +1,5 @@
 #!/usr/bin/python
 
-__doc__ = """
-I found this little pearl:
-http://www.aimglobal.org/technologies/barcode/Galois_Math.pdf) on which I
-based the following mess.
-"""
-
 from array import array
 
 class GaloisField(object):
