@@ -1,31 +1,22 @@
 # -*- coding: utf-8 -*-
+from numpy import array
 
-def symbol_version_determination(data_length, data_type,
-        error_correction_level):
-    max_data_capacity = get_max_data_capacity(data_length,
-            data_type, error_correction_level)
-    return choose_version(max_data_capacity)
-
-def finder_pattern():
-    """ 7x7
-    #######
-    #     #
-    # ### #
-    # ### #
-    # ### #
-    #     #
-    #######
+def position_detection_pattern(side_size):
+    """Assign Position Detection Pattern bits and relative separators.
     """
+    a = array([[9] * side_size] * side_size)
+    a[0] = a[6] = [1] * 7 + [0] + [9] * (side_size - 16) + [0] + [1] * 7
+    a[1] = a[5] = [1, 0, 0, 0, 0, 0, 1, 0] + [9] * (side_size - 16) + [0] + [1, 0, 0, 0, 0, 0, 1]
+    a[2] = a[3] = a[4] = [1, 0, 1, 1, 1, 0, 1, 0] + [9] * (side_size - 16) + [0, 1, 0, 1, 1, 1, 0, 1]
+    a[7] = [0] * 8 + [9] * (side_size - 16) + [0] * 8
+    
+    a[-8] = [0] * 8 + [9] * (side_size - 8)
+    a[-1] = a[-7] = [1] * 7 + [0] + [9] * (side_size - 8)
+    a[-2] = a[-6] = [1, 0, 0, 0, 0, 0, 1] + [0] + [9] * (side_size - 8)
+    a[-3] = a[-4] = a[-5] = [1, 0, 1, 1, 1, 0, 1]  + [0] + [9] * (side_size - 8)
+    return a
 
-    pass
-
-def separators():
-    """ a one-module wide separator between each position pattern
-    and encoding region"""
-
-    pass
-
-def timing_pattern():
+def timing_pattern(symbol_array):
     """
     The horizontal and vertical Timing Patterns respectively consist of a one
     module wide row or column of alternating dark and light modules,
@@ -37,8 +28,15 @@ def timing_pattern():
     to be determined and provide datum positions for determining module
     coordinates.
     """
+    for i in range(8, symbol_array.shape[0] - 8):
+        if i % 2 == 0:
+            symbol_array[6][i] = 1
+        else:
+            symbol_array[6][i] = 0
 
-    pass
+    symbol_array[:,6] = symbol_array[6]
+    print symbol_array
+    return symbol_array
 
 def alignment_pattern():
     """
