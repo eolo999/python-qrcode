@@ -1,13 +1,11 @@
 #!/usr/bin/python
 
-from array import array
-
 class GaloisField(object):
     def __init__(self, galois_field=256, primitive_polynomial_as_int=285):
         self.pp = primitive_polynomial_as_int
         self.gf = galois_field
-        self.log = array('i', [0] * self.gf)
-        self.alog = array('i', [0] * self.gf)
+        self.log = [0] * self.gf
+        self.alog = [0] * self.gf
         self.fill_log_arrays()
 
     def fill_log_arrays(self):
@@ -57,15 +55,15 @@ class GaloisField(object):
             raise Exception("Degree must be positive")
         if coefficient == 0:
             return 0
-        coefficients = array('i', [0] * (degree + 1))
+        coefficients = [0] * (degree + 1)
         coefficients[0] = coefficient
         return GFPoly(self, coefficients)
 
     def get_zero(self):
-        return GFPoly(self, array('i', [0]))
+        return GFPoly(self, [0])
 
     def get_one(self):
-        return GFPoly(self, array('i', [1]))
+        return GFPoly(self, [1])
 
 
 class GFPoly(object):
@@ -81,9 +79,9 @@ class GFPoly(object):
             if first_non_zero == self.length:
                 self.coefficients = self.field.get_zero().coefficients
             else:
-                self.coefficients = array('i', coefficients[first_non_zero:])
+                self.coefficients = coefficients[first_non_zero:]
         else:
-            self.coefficients = array('i', coefficients)
+            self.coefficients = coefficients
 
     def __str__(self):
         return "GFPoly(" + str(self.coefficients.tolist()) + ")"
@@ -104,10 +102,10 @@ class GFPoly(object):
         if diff == 0:
             val = [self.field.add(x,y) for x,y in zip(self.coefficients, other.coefficients)]
         elif diff > 0:
-            zr = array('i', [0] * diff)
+            zr = [0] * diff
             val = [self.field.add(x,y) for x,y in zip(zr + self.coefficients, other.coefficients)]
         else:
-            zr = array('i', [0] * abs(diff))
+            zr = [0] * abs(diff)
             val = [self.field.add(x,y) for x,y in zip(self.coefficients, zr + other.coefficients)]
 
         val = GFPoly(self.field, val)
@@ -123,7 +121,7 @@ class GFPoly(object):
         a_length = self.length
         b_coefficients = other.coefficients
         b_length = other.length
-        product = array('i', [0] * (a_length + b_length - 1))
+        product = [0] * (a_length + b_length - 1)
 
         for i in range(a_length):
             a_coeff = a_coefficients[i]
@@ -193,7 +191,7 @@ class GFPoly(object):
         if coefficient == 0:
             return self.field.get_zero()
         size = self.length
-        product = array('i', [0] * (size + degree))
+        product = [0] * (size + degree)
         for i in range(size):
             product[i] = self.field.multiply(self.coefficients[i],
                     coefficient)

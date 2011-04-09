@@ -1,7 +1,6 @@
 import sys
 sys.path.append('..')
 
-from array import array
 from nose.tools import raises
 
 from qrcode import Encoder
@@ -43,8 +42,8 @@ def test_list_to_coeff():
 
 def test_reed_solomon():
     a = Encoder('abcde123', 1, 'H', 'alphanumeric')
-    assert a.ec_blocks[0] == array('i', [42, 159, 74, 221, 244, 169, 239, 150,
-        138, 70, 237, 85, 224, 96, 74, 219, 61])
+    assert a.ec_blocks[0] == [42, 159, 74, 221, 244, 169, 239, 150,
+        138, 70, 237, 85, 224, 96, 74, 219, 61]
 
     a = Encoder('01234567', 1, 'M', 'numeric')
     assert a.codewords == [
