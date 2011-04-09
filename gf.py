@@ -91,32 +91,6 @@ class GFPoly(object):
     def __repr__(self):
         return self.__str__()
 
-    def get_coefficients(self):
-        return self.coefficients
-
-    def get_degree(self):
-        return self.length - 1
-
-    def is_zero(self):
-        return self.coefficients[0] == 0
-
-    def get_coefficient(self, degree):
-        return self.coefficients[self.length - 1 - degree]
-
-    def evaluate_at(self, m):
-        if m == 0:
-            return self.get_coefficient(0)
-        if m == 1:
-            result = 0
-            for i in range(self.length):
-                result = self.field.add(result, self.coefficients[i])
-            return result
-        result = self.coefficients[0]
-        for i in [x + 1 for x in range(self.length)]:
-            result = self.field.add(self.field.multiply(m, result),
-                    self.coefficients[i])
-        return result
-
     def __add__(self, other):
         if self.field != other.field:
             raise Exception("GFPolys do not have same Galois Field")
@@ -159,21 +133,7 @@ class GFPoly(object):
 
         return GFPoly(self.field, product)
 
-    def multiply_by_monomial(self, degree, coefficient):
-        if degree < 0:
-            raise Exception("Degree must be positive")
-
-        if coefficient == 0:
-            return self.field.get_zero()
-        size = self.length
-        product = array('i', [0] * (size + degree))
-        for i in range(size):
-            product[i] = self.field.multiply(self.coefficients[i],
-                    coefficient)
-
-        return GFPoly(self.field, product)
-
-    def divide(self, other):
+    def __div__(self, other):
         if self.field != other.field:
             raise Exception("GFPolys do not have same Galois Field")
         if other.is_zero():
@@ -199,3 +159,44 @@ class GFPoly(object):
             #print "remainder(%d):" % remainder.get_degree(), remainder
 
         return quotient, remainder
+
+    def get_coefficients(self):
+        return self.coefficients
+
+    def get_degree(self):
+        return self.length - 1
+
+    def is_zero(self):
+        return self.coefficients[0] == 0
+
+    def get_coefficient(self, degree):
+        return self.coefficients[self.length - 1 - degree]
+
+    def evaluate_at(self, m):
+        if m == 0:
+            return self.get_coefficient(0)
+        if m == 1:
+            result = 0
+            for i in range(self.length):
+                result = self.field.add(result, self.coefficients[i])
+            return result
+        result = self.coefficients[0]
+        for i in [x + 1 for x in range(self.length)]:
+            result = self.field.add(self.field.multiply(m, result),
+                    self.coefficients[i])
+        return result
+
+    def multiply_by_monomial(self, degree, coefficient):
+        if degree < 0:
+            raise Exception("Degree must be positive")
+
+        if coefficient == 0:
+            return self.field.get_zero()
+        size = self.length
+        product = array('i', [0] * (size + degree))
+        for i in range(size):
+            product[i] = self.field.multiply(self.coefficients[i],
+                    coefficient)
+
+        return GFPoly(self.field, product)
+

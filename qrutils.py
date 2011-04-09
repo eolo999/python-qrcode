@@ -129,5 +129,5 @@ def reed_solomon(coefficients, num_of_ec_words):
     num = GFPoly(gf256, coefficients).multiply_by_monomial(num_of_ec_words, 1)
     den = GFPoly(gf256, [gf256.alpha_power(x) for x in
         generator_polynomials[num_of_ec_words]])
-    q, rem = num.divide(den)
+    q, rem = num / den
     return rem.coefficients
