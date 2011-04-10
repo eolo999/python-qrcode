@@ -1,15 +1,27 @@
 # -*- coding: utf-8 -*-
 from numpy import array
 
-def position_detection_pattern(side_size):
+from qrreference import get_qr_size
+from alignment_patterns import get_coordinates
+
+def test(symbol_version):
+    symbol_array = position_detection_pattern(symbol_version)
+    alignment_pattern(symbol_version, symbol_array)
+    symbol_array = timing_pattern(symbol_array)
+    print symbol_array
+    return symbol_array
+
+def position_detection_pattern(symbol_version):
     """Assign Position Detection Pattern bits and relative separators.
     """
+    side_size = get_qr_size(symbol_version)
+
     a = array([[9] * side_size] * side_size)
     a[0] = a[6] = [1] * 7 + [0] + [9] * (side_size - 16) + [0] + [1] * 7
     a[1] = a[5] = [1, 0, 0, 0, 0, 0, 1, 0] + [9] * (side_size - 16) + [0] + [1, 0, 0, 0, 0, 0, 1]
     a[2] = a[3] = a[4] = [1, 0, 1, 1, 1, 0, 1, 0] + [9] * (side_size - 16) + [0, 1, 0, 1, 1, 1, 0, 1]
     a[7] = [0] * 8 + [9] * (side_size - 16) + [0] * 8
-    
+
     a[-8] = [0] * 8 + [9] * (side_size - 8)
     a[-1] = a[-7] = [1] * 7 + [0] + [9] * (side_size - 8)
     a[-2] = a[-6] = [1, 0, 0, 0, 0, 0, 1] + [0] + [9] * (side_size - 8)
@@ -29,16 +41,19 @@ def timing_pattern(symbol_array):
     coordinates.
     """
     for i in range(8, symbol_array.shape[0] - 8):
-        if i % 2 == 0:
-            symbol_array[6][i] = 1
-        else:
-            symbol_array[6][i] = 0
+        # do not overlap alignment patterns
+        # this function should executed after alignment patterns are displaced
+        if symbol_array[6][i] == 9:
+            if i % 2 == 0:
+                symbol_array[6][i] = 1
+            else:
+                symbol_array[6][i] = 0
 
     symbol_array[:,6] = symbol_array[6]
     print symbol_array
     return symbol_array
 
-def alignment_pattern():
+def alignment_pattern(symbol_version, symbol_array):
     """
     Each Alignment Pattern may be viewed as three superimposed concentric
     squares and is constructed of dark 5x́5 modules, light 3x3 modules and
@@ -46,8 +61,8 @@ def alignment_pattern():
     the symbol version and they shall be placed in all Model 2 symbols of
     Version 2 or larger in positions defined in Annex E.
     """
-
-    pass
+    centers = get_coordinates(symbol_version)
+    print centers
 
 def encoding_region():
     """
@@ -70,6 +85,6 @@ def quiet_zone():
     surrounding the symbol on all four sides. Its nominal reflectance value
     shall be equal to that of the light modules.
     """
-    
+
 def add_error_correction(data):
     return reed_solomon_code(data)

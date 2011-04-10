@@ -1,5 +1,7 @@
 from itertools import product
 
+from qrreference import get_qr_size
+
 __doc__ = """
 The Alignment Patterns are positioned symmetrically on either side of the
 diagonal running from the top left corner of the symbol to the bottom right
@@ -52,23 +54,45 @@ patterns = {
 40: {'num_ap': 46, 'centers': [6, 30, 58, 86, 114, 142, 170]},
 }
 
-def is_valid(coordinates):
-    # coordinates should not overlap Finder Patters nor Timing Patterns
-    # to be implemented
-    return True
+def is_valid(coordinates, size):
+    """check if the center of an alignment patterns falls over a position
+    detection pattern. Returns False in this case.
+
+    TODO: find a nicer way.
+    """
+    x, y = coordinates
+    if x == 6:
+        if y == 6 or y == (size - 7) or y == (size - 8):
+            return False
+        else:
+            return True
+    elif (x == (size - 7) or x == (size - 8)) and y == 6:
+        return False
+    else:
+        return True
 
 def get_coordinates(symbol_version):
+    """Given a symbol version number returns a list of alignment patterns
+    center coordinates."""
     centers = get_centers(symbol_version)
     coordinates = [x for x in product(centers, centers)]
-    coordinates = [x for x in coordinates if is_valid(x)]
+    coordinates = [x for x in coordinates if is_valid(x,
+        get_qr_size(symbol_version))]
     return coordinates
 
 def get_num_ap(symbol_version):
+    """Given a symbol version number returns the number of alignment patters
+    of the symbol.
+    """
     return patterns[symbol_version]['num_ap']
 
 def get_centers(symbol_version):
     return patterns[symbol_version]['centers']
 
 def test_coordinates():
-    assert get_coordinates(7) == set([(6,22), (22, 6), (22, 22), (22, 38),
+    assert set(get_coordinates(7)) == set([(6,22), (22, 6), (22, 22), (22, 38),
         (38, 22), (38, 38)])
+
+def test_coordinates_random():
+    for symbol_version in range(1, 41):
+        assert len(get_coordinates(symbol_version)) == get_num_ap(symbol_version)
