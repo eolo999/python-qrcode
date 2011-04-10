@@ -94,6 +94,3 @@ def quiet_zone():
     surrounding the symbol on all four sides. Its nominal reflectance value
     shall be equal to that of the light modules.
     """
-
-def add_error_correction(data):
-    return reed_solomon_code(data)
