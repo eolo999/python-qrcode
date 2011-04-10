@@ -1,5 +1,14 @@
 from itertools import product
 
+__doc__ = """
+The Alignment Patterns are positioned symmetrically on either side of the
+diagonal running from the top left corner of the symbol to the bottom right
+corner. They are spaced as evenly as possible between the Timing Pattern and
+the opposite side of the symbol, any uneven spacing being accommodated between
+the Timing Pattern and the first Alignment Pattern in the symbol interior.
+"""
+
+# ISO/IEC 18004 Table E.1
 patterns = {
 1:  {'num_ap': 0,  'centers': []},
 2:  {'num_ap': 1,  'centers': [6, 18]},
@@ -44,6 +53,7 @@ patterns = {
 }
 
 def is_valid(coordinates):
+    # coordinates should not overlap Finder Patters nor Timing Patterns
     # to be implemented
     return True
 
