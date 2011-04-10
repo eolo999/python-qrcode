@@ -3,6 +3,7 @@ sys.path.append('..')
 
 from nose.tools import raises
 
+from error_correction import blocks_per_ecl, get_blocks
 from qrreference import *
 
 def test_qr_size():

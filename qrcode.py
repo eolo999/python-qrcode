@@ -15,9 +15,9 @@ from qrreference import (
         get_max_databits,
         get_max_codewords,
         get_ec_codewords,
-        get_blocks,
         )
 
+from error_correction import get_blocks
 
 class Encoder(object):
     def __init__(self,
