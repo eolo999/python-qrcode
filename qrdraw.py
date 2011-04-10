@@ -8,7 +8,6 @@ def test(symbol_version):
     symbol_array = position_detection_pattern(symbol_version)
     alignment_pattern(symbol_version, symbol_array)
     symbol_array = timing_pattern(symbol_array)
-    print symbol_array
     return symbol_array
 
 def position_detection_pattern(symbol_version):
@@ -41,13 +40,10 @@ def timing_pattern(symbol_array):
     coordinates.
     """
     for i in range(8, symbol_array.shape[0] - 8):
-        # do not overlap alignment patterns
-        # this function should executed after alignment patterns are displaced
-        if symbol_array[6][i] == 9:
-            if i % 2 == 0:
-                symbol_array[6][i] = 1
-            else:
-                symbol_array[6][i] = 0
+        if i % 2 == 0:
+            symbol_array[6][i] = 1
+        else:
+            symbol_array[6][i] = 0
 
     symbol_array[:,6] = symbol_array[6]
     print symbol_array
@@ -62,7 +58,20 @@ def alignment_pattern(symbol_version, symbol_array):
     Version 2 or larger in positions defined in Annex E.
     """
     centers = get_coordinates(symbol_version)
-    print centers
+    for center in centers:
+        symbol_array = draw_alignment_pattern(center, symbol_array)
+    return symbol_array
+
+def draw_alignment_pattern(center, symbol_array):
+    x, y = center
+
+    symbol_array[x - 2][y - 2:y + 3] = [1, 1, 1, 1, 1]
+    symbol_array[x - 1][y - 2:y + 3] = [1, 0, 0, 0, 1]
+    symbol_array[x][y - 2:y + 3] =     [1, 0, 1, 0, 1]
+    symbol_array[x + 1][y - 2:y + 3] = [1, 0, 0, 0, 1]
+    symbol_array[x + 2][y - 2:y + 3] = [1, 1, 1, 1, 1]
+
+    return symbol_array
 
 def encoding_region():
     """
