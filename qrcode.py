@@ -6,6 +6,7 @@ from qrutils import (
         convert_alphanumeric,
         list_to_coeff,
         reed_solomon,
+        determine_symbol_version,
         to_binstring,
         pad)
 
@@ -22,7 +23,6 @@ from error_correction import get_blocks
 class Encoder(object):
     def __init__(self,
             input_string,
-            symbol_version=1,
             error_correction_level='L',
             data_mode='numeric'):
 
@@ -30,7 +30,8 @@ class Encoder(object):
         self.input_string = input_string
         self.error_correction_level = error_correction_level
         self.data_mode = data_mode
-        self.symbol_version = symbol_version
+        self.symbol_version = determine_symbol_version(input_string,
+                error_correction_level)
         self.mode_bits = get_mode_indicators(self.data_mode)
         self.count_bits = get_num_of_bits_character_count_indicator(
                 self.symbol_version,
@@ -162,8 +163,8 @@ class Encoder(object):
 
 def main():
     global num, alnum
-    num = Encoder('01234567', 1, 'L')
-    alnum = Encoder('asdfdadas876-asd.', 1, 'L', 'alphanumeric')
+    num = Encoder('01234567', 'L')
+    alnum = Encoder('asdfdadas876-asd.', 'L', 'alphanumeric')
 
 if __name__ == '__main__':
     main()

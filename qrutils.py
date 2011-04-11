@@ -1,8 +1,28 @@
-from qrreference import alphanumeric_codes
+from re import search
+from qrreference import alphanumeric_codes, get_max_char_capacity
 from rs_generator_polynomials import generator_polynomials
 from gf import GFPoly, GaloisField
 
 gf256 = GaloisField()
+
+def determine_datatype(input_string):
+    match = search(r'\d+', input_string)
+    if match:
+        return 'numeric'
+    return 'alphanumeric'
+
+def determine_symbol_version(input_string, ecl):
+    """Determine symbol version for input_string based on error correction
+    level with minimum empty space"""
+    data_type = determine_datatype(input_string)
+    input_string_length = len(input_string)
+    current = 1
+    while current <= 40:
+        if get_max_char_capacity(data_type, current, ecl) >= input_string_length:
+            return current
+        else:
+            current += 1
+    raise Exception("String is too long!")
 
 
 def split_numeric_input(input):

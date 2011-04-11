@@ -10,7 +10,16 @@ from qrutils import (
         convert_numeric,
         pad,
         to_coeff,
-        list_to_coeff)
+        list_to_coeff,
+        determine_symbol_version)
+
+@raises(Exception)
+def test_determine_symbol_version_exception():
+    assert determine_symbol_version('1' * 8000, 'H') == 1
+
+def test_determine_symbol_version():
+    assert determine_symbol_version('1', 'H') == 1
+    assert determine_symbol_version('1' * 3390, 'M') == 31
 
 def test_split_numeric_mode():
     assert(split_numeric_input('01234567') == ['012', '345', '67'])
@@ -41,11 +50,11 @@ def test_list_to_coeff():
     assert list_to_coeff(['110', '1001']) == [6, 9]
 
 def test_reed_solomon():
-    a = Encoder('abcde123', 1, 'H', 'alphanumeric')
+    a = Encoder('abcde123', 'H', 'alphanumeric')
     assert a.ec_blocks[0] == [42, 159, 74, 221, 244, 169, 239, 150,
         138, 70, 237, 85, 224, 96, 74, 219, 61]
 
-    a = Encoder('01234567', 1, 'M', 'numeric')
+    a = Encoder('01234567', 'M', 'numeric')
     assert a.codewords == [
             '00010000', '00100000', '00001100', '01010110', '01100001', '10000000',
             '11101100', '00010001', '11101100', '00010001', '11101100', '00010001',
@@ -53,12 +62,12 @@ def test_reed_solomon():
 
     assert a.ec_blocks[0][0] == 165
 
-    a = Encoder('b'*938, 17, 'L', 'alphanumeric')
+    a = Encoder('b'*938, 'L', 'alphanumeric')
     assert len(a.ec_blocks) == 6
     assert len(a.data_blocks[0]) == 107
     assert len(a.data_blocks[1]) == 108
 
-    a = Encoder('a'*60, 5, 'H', 'alphanumeric')
+    a = Encoder('a'*60, 'H', 'alphanumeric')
     assert len(a.ec_blocks) == 4
     assert len(a.data_blocks[0]) == 11
     assert len(a.data_blocks[2]) == 12
