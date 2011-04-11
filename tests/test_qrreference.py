@@ -28,6 +28,9 @@ def test_get_wrong_mode_indicators():
 def test_alphanumeric_codes():
     assert alphanumeric_codes('AC-42') == [10,12,41,4,2]
 
+def test_get_max_char_capacity():
+    assert get_max_char_capacity('alphanumeric', 35, 'Q') == 1867
+
 def test_get_max_codewords():
     assert get_max_codewords(1, 'M') == 16
 
