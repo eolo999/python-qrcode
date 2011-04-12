@@ -1,4 +1,3 @@
-from re import search
 from qrreference import alphanumeric_codes, get_max_char_capacity
 from rs_generator_polynomials import generator_polynomials
 from gf import GFPoly, GaloisField
@@ -6,8 +5,7 @@ from gf import GFPoly, GaloisField
 gf256 = GaloisField()
 
 def determine_datatype(input_string):
-    match = search(r'\d+', input_string)
-    if match:
+    if input_string.isdigit():
         return 'numeric'
     return 'alphanumeric'
 

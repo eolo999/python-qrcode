@@ -7,6 +7,7 @@ from qrutils import (
         list_to_coeff,
         reed_solomon,
         determine_symbol_version,
+        determine_datatype,
         to_binstring,
         pad)
 
@@ -21,15 +22,12 @@ from qrreference import (
 from error_correction import get_blocks
 
 class Encoder(object):
-    def __init__(self,
-            input_string,
-            error_correction_level='L',
-            data_mode='numeric'):
+    def __init__(self, input_string, error_correction_level='L'):
 
         self.code = ''
         self.input_string = input_string
         self.error_correction_level = error_correction_level
-        self.data_mode = data_mode
+        self.data_mode = determine_datatype(input_string)
         self.symbol_version = determine_symbol_version(input_string,
                 error_correction_level)
         self.mode_bits = get_mode_indicators(self.data_mode)

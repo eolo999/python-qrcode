@@ -12,11 +12,11 @@ def test_numeric_encoder():
     assert e.code == '000100000100000000001100010101100110101001101110000101001110101001010000'
 
 def test_alphanumeric_encoder():
-    e = Encoder('AC-42', 'L', 'alphanumeric')
+    e = Encoder('AC-42', 'L')
     assert e.code == '001000000010100111001110111001110010000100000'
 
 def test_till_rs():
-    e = Encoder('01234567', 'M', 'numeric')
+    e = Encoder('01234567', 'M')
     s = ''
     for word in e.codewords:
         s += word
