@@ -121,18 +121,17 @@ class Encoder(object):
         rules for the mode in force, as defined in 8.4.1 to 8.4.5
         """
         if self.data_mode == 'numeric':
-            self.code = (self._insert_indicators() +
-                    convert_numeric(self.input_string))
+            self.code = "".join([self._insert_indicators(),
+                    convert_numeric(self.input_string)])
             assert self.validate_numeric_bitstream_length()
         elif self.data_mode == 'alphanumeric':
-            self.code = (self._insert_indicators() +
-                    convert_alphanumeric(self.input_string))
+            self.code = "".join([self._insert_indicators(),
+                    convert_alphanumeric(self.input_string)])
             assert self.validate_alphanumeric_bitstream_length()
 
     def _insert_indicators(self):
-        indicators = self.mode_bits + to_binstring(
-                len(self.input_string),
-                self.count_bits)
+        indicators = "".join([self.mode_bits,
+            to_binstring(len(self.input_string), self.count_bits)])
         return indicators
 
     def validate_numeric_bitstream_length(self):

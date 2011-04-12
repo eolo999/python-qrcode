@@ -30,7 +30,7 @@ def split_numeric_input(input):
     tmp_string = ''
     for i in range(1, len(input) + 1):
         if (i % 3) == 0:
-            splitted_data.append(tmp_string + input[i - 1])
+            splitted_data.append("".join([tmp_string, input[i - 1]]))
             tmp_string = ''
         else:
             tmp_string += input[i - 1]
@@ -74,7 +74,7 @@ def pad(bit_string, length):
     zeroes = length - len(bit_string)
     if zeroes < 0:
         raise Exception("Bit string is longer than padding")
-    return bit_string + '0' * zeroes
+    return "".join([bit_string, '0' * zeroes])
 
 
 def convert_numeric(input):

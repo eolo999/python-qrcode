@@ -41,8 +41,8 @@ mode_indicators = {
         }
 
 # ISO/IEC 18004 - Table 5
-alphanumeric_char_values = dict([(x[1], x[0]) for x in enumerate(digits +
-    ascii_uppercase + ' $%*+-./:')])
+alphanumeric_char_values = dict([(x[1], x[0]) for x in
+    enumerate("".join([digits, ascii_uppercase, ' $%*+-./:']))])
 
 # ISO/IEC 18004 - Table 1 (partial) and Table 7 (partial)
 symbol_version_data = {
