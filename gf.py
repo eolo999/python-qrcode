@@ -84,7 +84,7 @@ class GFPoly(object):
             self.coefficients = coefficients
 
     def __str__(self):
-        return "GFPoly(" + str(self.coefficients.tolist()) + ")"
+        return "GFPoly(" + str(self.coefficients) + ")"
 
     def __repr__(self):
         return self.__str__()
