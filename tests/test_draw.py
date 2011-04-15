@@ -3,7 +3,7 @@ from qrdraw import position_detection_pattern
 def test_position_detection_pattern():
     """Tautologic test till I'll refactor.
     """
-    a = position_detection_pattern(21)
+    a = position_detection_pattern(1)
     assert a[0].tolist() == a[6].tolist() == [1, 1, 1, 1, 1, 1, 1, 0, 9, 9, 9,
             9, 9, 0, 1, 1, 1, 1, 1, 1, 1]
     assert a[1].tolist() == a[5].tolist() == [1, 0, 0, 0, 0, 0, 1, 0, 9, 9, 9,
