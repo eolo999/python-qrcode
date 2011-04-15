@@ -2,6 +2,7 @@
 
 
 from qrutils import (
+        version_information,
         convert_numeric,
         convert_alphanumeric,
         list_to_coeff,
@@ -52,6 +53,10 @@ class Encoder(object):
 
         self.apply_error_correction()
         self.create_final_sequence()
+        if self.symbol_version < 7:
+            self.version_information = None
+        else:
+            self.version_information = version_information(self.symbol_version)
         # apply mask
         # matrix position
         # draw symbol

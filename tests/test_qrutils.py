@@ -5,6 +5,7 @@ from nose.tools import raises
 
 from qrcode import Encoder
 from qrutils import (
+        version_information,
         split_numeric_input,
         split_alphanumeric_input,
         convert_numeric,
@@ -12,6 +13,19 @@ from qrutils import (
         to_coeff,
         list_to_coeff,
         determine_symbol_version)
+
+def test_version_information_5():
+    assert version_information(5) == ''
+
+def test_version_information_7():
+    version_string = version_information(7)
+    result = '000111110010010100'
+    assert version_string == result
+
+def test_version_information_8():
+    version_string = version_information(8)
+    result = '001000010110111100'
+    assert version_string == result
 
 @raises(Exception)
 def test_determine_symbol_version_exception():
