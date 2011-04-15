@@ -1,3 +1,6 @@
+from PIL import Image
+from math import sqrt
+from tempfile import mktemp
 from qrreference import alphanumeric_codes, get_max_char_capacity
 from rs_generator_polynomials import generator_polynomials
 from gf import GFPoly, GaloisField
@@ -149,3 +152,25 @@ def reed_solomon(coefficients, num_of_ec_words):
         generator_polynomials[num_of_ec_words]])
     q, rem = num / den
     return rem.coefficients
+
+
+def make_image(data, path=None, width=None, raw_list=False):
+    """creates a png image for the incoming data.
+    
+    if no path is given, a temporary file is created.
+    by default data is expected to be in an nested numpy array,
+    but a raw list is accepted if the corisponding flag is set.
+    if width is not esplicitely given, it is calculated as 
+    the square root of the data-length."""
+    if not raw_list:
+        data = [list(array) for array in data]
+        data = sum(data, [])
+    width = width or sqrt(len(data))
+    if width != int(width):
+        raise RuntimeError("malformed data")
+    width = int(width)
+    im = Image.new("1", (width, width))
+    im.putdata(data)
+    path = path or (mktemp() + ".png")
+    im.save(path)
+    return path
