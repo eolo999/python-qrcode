@@ -2,12 +2,15 @@
 from numpy import array
 
 from qrreference import get_qr_size
+from qrutils import make_image
+
 from alignment_patterns import get_coordinates
 
 def test(symbol_version):
     symbol_array = position_detection_pattern(symbol_version)
     alignment_pattern(symbol_version, symbol_array)
     symbol_array = timing_pattern(symbol_array)
+    make_image(symbol_array)
     return symbol_array
 
 def position_detection_pattern(symbol_version):
