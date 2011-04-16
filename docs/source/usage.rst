@@ -1,12 +1,6 @@
 How to
 ======
 
-Run this file with::
-
-    python -m doctest -v status.txt
-
-..
-
 To encode an alphanumeric string in a QR Code symbol with error correction
 level set to *M* you have to::
 
@@ -31,6 +25,6 @@ I still have to find an algorithm to place the bits into the symbol array.
 
 **Help appreciated.**
 
-In the 'draw' branch there's a raw way to create a symbol array for any symbol
-version with Position Detection, Timing and Alignment patterns so that I'll
-have a skeleton to test with data displacing.
+In the **qrdraw** module there's an early stage way to create a symbol array for any
+symbol version with Position Detection, Timing and Alignment patterns so that
+I'll have a skeleton to test with data displacing.
