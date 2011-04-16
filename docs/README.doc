@@ -1,0 +1,16 @@
+README
+======
+
+Use sphinx to build the docs::
+
+  easy_install sphinx
+
+..
+
+Then build them::
+
+  make html
+
+..
+
+Finally point your browser to ./build/html/index.html.
