@@ -4,12 +4,11 @@ from string import ascii_uppercase, digits, upper
 symbol_versions = [(n+1) for n in range(40)]
 side_lengths = range(21, 181, 4)
 
-# 21x21 modules to 177x177 modules
-# (Versions 1 to 40, increasing in steps of 4 modules per side)
-# ISO/IEC 18004 - Table 1 (partial)
 symbol_sizes = dict(zip(symbol_versions, side_lengths))
+"""21x21 modules to 177x177 modules (Versions 1 to 40, increasing in steps of
+4 modules per side) ISO/IEC 18004 - Table 1 (partial)"""
 
-# ISO/IEC 18004 - Table 3
+#: ISO/IEC 18004 - Table 3
 num_of_bits_character_count_indicator = {}
 for version in symbol_versions:
     num_of_bits_character_count_indicator[version] = {}
@@ -29,7 +28,7 @@ for version in symbol_versions:
         num_of_bits_character_count_indicator[version]['8bit'] = 16
         num_of_bits_character_count_indicator[version]['kanji'] = 12
 
-# ISO/IEC 18004 - Table 2
+#: ISO/IEC 18004 - Table 2
 mode_indicators = {
         'ECI': '0111',
         'numeric': '0001',
@@ -40,11 +39,11 @@ mode_indicators = {
         'fnc1': ['0101', '1001'],
         }
 
-# ISO/IEC 18004 - Table 5
+#: ISO/IEC 18004 - Table 5
 alphanumeric_char_values = dict([(x[1], x[0]) for x in
     enumerate("".join([digits, ascii_uppercase, ' $%*+-./:']))])
 
-# ISO/IEC 18004 - Table 1 (partial) and Table 7 (partial)
+#: ISO/IEC 18004 - Table 1 (partial) and Table 7 (partial)
 symbol_version_data = {
         1:  {
             'data_capacity': 26,
@@ -246,10 +245,9 @@ symbol_version_data = {
             }
         }
 
-# ISO/IEC 18004 - Table 7 (partial)
-# TODO: should be completed when I'll implement an automatic symbol version
-# chooser based on input string
 ecl_index = {'L': 0, 'M': 1, 'Q': 2, 'H': 3}
+
+#: ISO/IEC 18004 - Table 7 (partial)
 max_char_capacity = {
         'numeric': {
             1: [41, 34, 27, 17],
@@ -337,7 +335,7 @@ max_char_capacity = {
             },
         }
 
-# ISO/IEC 18004 Table D.1
+#: ISO/IEC 18004 Table D.1
 version_information_bit_string = {
         7: '000111110010010100',
         8: '001000010110111100',

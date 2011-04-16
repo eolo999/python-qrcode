@@ -169,13 +169,15 @@ def reed_solomon(coefficients, num_of_ec_words):
 
 
 def make_image(data, path=None, width=None, raw_list=False):
-    """creates a png image for the incoming data.
-    
-    if no path is given, a temporary file is created.
-    by default data is expected to be in an nested numpy array,
-    but a raw list is accepted if the corisponding flag is set.
-    if width is not esplicitely given, it is calculated as 
-    the square root of the data-length."""
+    """Creates a png image for the incoming data.
+
+    If no path is given, a temporary file is created.
+
+    By default data is expected to be in an nested numpy array, but a raw list
+    is accepted if the corisponding flag is set.
+
+    If width is not esplicitely given, it is calculated as the square root of
+    the data-length."""
     if not raw_list:
         data = [list(array) for array in data]
         data = sum(data, [])

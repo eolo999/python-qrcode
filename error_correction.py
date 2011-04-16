@@ -1,6 +1,7 @@
+#: Dictionary associating error correction level to integer indexes
 ecl_index = {'L': 0, 'M': 1, 'Q': 2, 'H': 3}
 
-# ISO/IEC 18004 - Table 13-22 (partial)
+#: ISO/IEC 18004 - Table 13-22 (partial)
 blocks_per_ecl = {
         1: [[19],
             [16],
