@@ -1,17 +1,61 @@
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
+
 from numpy import array
 
 from qrreference import get_qr_size
 from qrutils import make_image
+from qrcode import Encoder
 
 from alignment_patterns import get_coordinates
 
-def test(symbol_version):
-    symbol_array = position_detection_pattern(symbol_version)
-    alignment_pattern(symbol_version, symbol_array)
+def test():
+    code = Encoder('1' * 368, 'L')
+    symbol_array = position_detection_pattern(code.symbol_version)
+    alignment_pattern(code.symbol_version, symbol_array)
     symbol_array = timing_pattern(symbol_array)
-    make_image(symbol_array)
+    if code.symbol_version >= 7:
+        symbol_array = version_information_positioning(symbol_array,
+                code.version_information)
+    # make_image(symbol_array)
+    pbm_image(get_qr_size(code.symbol_version), symbol_array)
     return symbol_array
+
+
+def pbm_image(symbol_size, symbol_array):
+    with open('test.pbm', 'w') as f:
+        f.writelines(['P1\n', " ".join([str(symbol_size), str(symbol_size)]),
+            '\n', ])
+        for array in symbol_array:
+            for x in array:
+                if x == 9:
+                    x = 0
+                f.write("".join([str(x), ' ']))
+            f.write('\n')
+    return True
+
+def version_information_positioning(symbol_array, version_information):
+    print version_information
+    symbol_array[0][-11] = symbol_array[-11][0] = version_information[0]
+    symbol_array[0][-10] = symbol_array[-10][0] = version_information[1]
+    symbol_array[0][-9] = symbol_array[-9][0] = version_information[2]
+    symbol_array[1][-11] = symbol_array[-11][1] = version_information[3]
+    symbol_array[1][-10] = symbol_array[-10][1] = version_information[4]
+    symbol_array[1][-9] = symbol_array[-9][1] = version_information[5]
+    symbol_array[2][-11] = symbol_array[-11][2] = version_information[6]
+    symbol_array[2][-10] = symbol_array[-10][2] = version_information[7]
+    symbol_array[2][-9] = symbol_array[-9][2] = version_information[8]
+    symbol_array[3][-11] = symbol_array[-11][3] = version_information[9]
+    symbol_array[3][-10] = symbol_array[-10][3] = version_information[10]
+    symbol_array[3][-9] = symbol_array[-9][3] = version_information[11]
+    symbol_array[4][-11] = symbol_array[-11][4] = version_information[12]
+    symbol_array[4][-10] = symbol_array[-10][4] = version_information[13]
+    symbol_array[4][-9] = symbol_array[-9][4] = version_information[14]
+    symbol_array[5][-11] = symbol_array[-11][5] = version_information[15]
+    symbol_array[5][-10] = symbol_array[-10][5] = version_information[16]
+    symbol_array[5][-9] = symbol_array[-9][5] = version_information[17]
+    return symbol_array
+
 
 def position_detection_pattern(symbol_version):
     """Assign Position Detection Pattern bits and relative separators.
@@ -97,3 +141,6 @@ def quiet_zone():
     surrounding the symbol on all four sides. Its nominal reflectance value
     shall be equal to that of the light modules.
     """
+
+if __name__ == '__main__':
+    test()

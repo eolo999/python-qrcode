@@ -40,6 +40,7 @@ class Encoder(object):
         self.data_blocks = []
         self.ec_blocks = []
         self.final_sequence = []
+        self.version_information = None
 
         self.encode()
 
@@ -53,9 +54,7 @@ class Encoder(object):
 
         self.apply_error_correction()
         self.create_final_sequence()
-        if self.symbol_version < 7:
-            self.version_information = None
-        else:
+        if self.symbol_version >= 7:
             self.version_information = version_information(self.symbol_version)
         # apply mask
         # matrix position
