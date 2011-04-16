@@ -13,13 +13,11 @@ Contents:
 
     usage
     alignment_patterns
-    error_correction
     gf
     qrcode
     qrdraw
     qrreference
     qrutils
-    rs_generator_polynomials
 
 
 Indices and tables

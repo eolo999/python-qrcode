@@ -3,8 +3,7 @@
 
 from numpy import array
 
-from qrreference import get_qr_size
-from qrutils import make_image
+from qrutils import make_image, get_qr_size
 from qrcode import Encoder
 
 from alignment_patterns import get_coordinates

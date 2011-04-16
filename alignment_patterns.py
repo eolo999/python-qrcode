@@ -6,7 +6,7 @@ accommodated between the Timing Pattern and the first Alignment Pattern in the
 symbol interior."""
 
 from itertools import product
-from qrreference import get_qr_size
+from qrutils import get_qr_size
 
 #: ISO/IEC 18004 Table E.1
 patterns = {
