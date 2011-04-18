@@ -169,8 +169,14 @@ def make_image(data, path=None, width=None, raw_list=False):
     if width != int(width):
         raise RuntimeError("malformed data")
     width = int(width)
+    tmp_data = []
+    for i in data:
+      if i == 1:
+        tmp_data.append(0)
+      else:
+        tmp_data.append(1)
     im = Image.new("1", (width, width))
-    im.putdata(data)
+    im.putdata(tmp_data)
     path = path or (mktemp() + ".png")
     im.save(path)
     return path
