@@ -1,11 +1,25 @@
 from PIL import Image
 from math import sqrt
 from tempfile import mktemp
-from qrreference import alphanumeric_codes, get_max_char_capacity
+from qrreference import (
+        alphanumeric_codes,
+        get_max_char_capacity,
+        get_version_information_bit_string,
+        )
+
 from rs_generator_polynomials import generator_polynomials
 from gf import GFPoly, GaloisField
 
 gf256 = GaloisField()
+
+
+def version_information(symbol_version):
+    """Uses ISO/IEC 18004 Table D.1 but I'd like to calculate BCH(18,6) on my
+    own.
+    """
+    if symbol_version < 7:
+        return ''
+    return get_version_information_bit_string(symbol_version)
 
 def determine_datatype(input_string):
     if input_string.isdigit():
@@ -33,7 +47,7 @@ def split_numeric_input(input):
     tmp_string = ''
     for i in range(1, len(input) + 1):
         if (i % 3) == 0:
-            splitted_data.append(tmp_string + input[i - 1])
+            splitted_data.append("".join([tmp_string, input[i - 1]]))
             tmp_string = ''
         else:
             tmp_string += input[i - 1]
@@ -77,7 +91,7 @@ def pad(bit_string, length):
     zeroes = length - len(bit_string)
     if zeroes < 0:
         raise Exception("Bit string is longer than padding")
-    return bit_string + '0' * zeroes
+    return "".join([bit_string, '0' * zeroes])
 
 
 def convert_numeric(input):
