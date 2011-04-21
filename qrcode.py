@@ -1,30 +1,32 @@
 # -*- coding: utf-8 -*-
 
-
 from qrutils import (
-        version_information,
-        convert_numeric,
         convert_alphanumeric,
-        list_to_coeff,
-        reed_solomon,
-        determine_symbol_version,
+        convert_numeric,
         determine_datatype,
-        to_binstring,
-        pad)
-
-from qrreference import (
+        determine_symbol_version,
+        get_blocks,
+        get_ec_codewords,
+        get_max_codewords,
+        get_max_databits,
         get_mode_indicators,
         get_num_of_bits_character_count_indicator,
-        get_max_databits,
-        get_max_codewords,
-        get_ec_codewords,
-        )
+        list_to_coeff,
+        pad,
+        reed_solomon,
+        to_binstring,
+        version_information)
 
-from error_correction import get_blocks
 
 class Encoder(object):
-    def __init__(self, input_string, error_correction_level='L'):
+    """Encode numeric and alphanumeric strings in a QR Code Symbol version 2.
 
+    :param input_string: the string you wanto to encode
+    :param error_correction_level: defines how many erasures or
+                                   errors your symbol will tolerate
+                                   maintaining its readability.
+    """
+    def __init__(self, input_string, error_correction_level='L'):
         self.code = ''
         self.input_string = input_string
         self.error_correction_level = error_correction_level
@@ -40,28 +42,32 @@ class Encoder(object):
         self.data_blocks = []
         self.ec_blocks = []
         self.final_sequence = []
+        self.version_information = None
 
         self.encode()
 
     def encode(self):
-        self.convert_data()
+        """Encode the input string into a bit sequence."""
+        self._convert_data()
         self.codewords = self._bitstream_to_codewords()
         max_codewords = get_max_codewords(self.symbol_version,
                 self.error_correction_level)
-        self.fill_symbol_with_pad_codewords(max_codewords -
+        self._fill_symbol_with_pad_codewords(max_codewords -
                 len(self.codewords))
 
-        self.apply_error_correction()
-        self.create_final_sequence()
-        if self.symbol_version < 7:
-            self.version_information = None
-        else:
+        self._apply_error_correction()
+        self._create_final_sequence()
+        if self.symbol_version >= 7:
             self.version_information = version_information(self.symbol_version)
         # apply mask
         # matrix position
-        # draw symbol
 
-    def apply_error_correction(self):
+    def save_image(self, path):
+        """Saves the QR Code Symbol to the given 'path'."""
+        pass
+
+    def _apply_error_correction(self):
+        """Creates the error correction block relative to every data block."""
         index = 0
         cw = list_to_coeff(self.codewords)
         code_blocks_num = get_blocks(self.symbol_version,
@@ -74,9 +80,10 @@ class Encoder(object):
                 self.error_correction_level) / len(self.data_blocks)
 
         for code_block in self.data_blocks:
-            self.ec_blocks.append(reed_solomon(code_block, ec_codewords_per_block))
+            self.ec_blocks.append(
+                    reed_solomon(code_block, ec_codewords_per_block))
 
-    def create_final_sequence(self):
+    def _create_final_sequence(self):
         for i in range(max([len(x) for x in self.data_blocks])):
             for data_block in self.data_blocks:
                 try:
@@ -87,7 +94,8 @@ class Encoder(object):
             for ec_block in self.ec_blocks:
                 self.final_sequence.append(ec_block[i])
 
-    def fill_symbol_with_pad_codewords(self, num_of_codewords):
+    def _fill_symbol_with_pad_codewords(self, num_of_codewords):
+        """Fill a symbol to its maximum capacity with alternate pad words."""
         pad0 = '11101100'
         pad1 = '00010001'
         for n in range(num_of_codewords):
@@ -120,7 +128,7 @@ class Encoder(object):
             codewords.append(tmp_word)
         return codewords
 
-    def convert_data(self):
+    def _convert_data(self):
         """
         Convert the data characters into a bit stream in accordance with the
         rules for the mode in force, as defined in 8.4.1 to 8.4.5
@@ -128,18 +136,18 @@ class Encoder(object):
         if self.data_mode == 'numeric':
             self.code = "".join([self._insert_indicators(),
                     convert_numeric(self.input_string)])
-            assert self.validate_numeric_bitstream_length()
+            assert self._validate_numeric_bitstream_length()
         elif self.data_mode == 'alphanumeric':
             self.code = "".join([self._insert_indicators(),
                     convert_alphanumeric(self.input_string)])
-            assert self.validate_alphanumeric_bitstream_length()
+            assert self._validate_alphanumeric_bitstream_length()
 
     def _insert_indicators(self):
         indicators = "".join([self.mode_bits,
             to_binstring(len(self.input_string), self.count_bits)])
         return indicators
 
-    def validate_numeric_bitstream_length(self):
+    def _validate_numeric_bitstream_length(self):
         r = len(self.input_string) % 3
         if r != 0:
             r = r * 3 + 1
@@ -147,7 +155,7 @@ class Encoder(object):
                 4 + self.count_bits +
                 10 * (len(self.input_string) / 3) + r)
 
-    def validate_alphanumeric_bitstream_length(self):
+    def _validate_alphanumeric_bitstream_length(self):
         """
         B = 4 + C + 11(D DIV 2) + 6(D MOD 2)
         where:
@@ -163,10 +171,10 @@ class Encoder(object):
         return B == 4 + C + 11 * (D / 2) + 6 * (D % 2)
 
 
-def main():
+def _main():
     global num, alnum
     num = Encoder('01234567', 'L')
     alnum = Encoder('asdfdadas876-asd.', 'L', 'alphanumeric')
 
 if __name__ == '__main__':
-    main()
+    _main()

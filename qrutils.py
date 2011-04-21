@@ -1,16 +1,56 @@
 from PIL import Image
 from math import sqrt
 from tempfile import mktemp
+
 from qrreference import (
-        alphanumeric_codes,
-        get_max_char_capacity,
-        get_version_information_bit_string,
-        )
+        alphanumeric_char_values,
+        blocks_per_ecl,
+        ecl_index,
+        generator_polynomials,
+        max_char_capacity,
+        mode_indicators,
+        num_of_bits_character_count_indicator,
+        symbol_sizes,
+        symbol_version_data,
+        version_information_bit_string)
 
-from rs_generator_polynomials import generator_polynomials
 from gf import GFPoly, GaloisField
-
 gf256 = GaloisField()
+
+def get_blocks(version, ecl):
+    return blocks_per_ecl[version][ecl_index[ecl]]
+
+def get_version_information_bit_string(symbol_version):
+    return version_information_bit_string[symbol_version]
+
+def get_max_char_capacity(data_type, symbol_version, ecl):
+    return max_char_capacity[data_type][symbol_version][ecl_index[ecl]]
+
+def get_ec_codewords(version, ecl):
+    return (
+            symbol_version_data[version]['data_capacity'] -
+            symbol_version_data[version]['data_codewords'][ecl])
+
+def get_max_codewords(version, ecl):
+    return symbol_version_data[version]['data_codewords'][ecl]
+
+def get_max_databits(version, ecl):
+    return get_max_codewords(version, ecl) * 8
+
+def get_mode_indicators(data_mode):
+    return mode_indicators[data_mode]
+
+def get_num_of_bits_character_count_indicator(version, data_mode):
+    return num_of_bits_character_count_indicator[version][data_mode]
+
+def get_qr_size(version):
+    return symbol_sizes[version]
+
+def alphanumeric_codes(input):
+    codes = []
+    for ch in input:
+        codes.append(alphanumeric_char_values[ch.upper()])
+    return codes
 
 
 def version_information(symbol_version):
@@ -169,13 +209,15 @@ def reed_solomon(coefficients, num_of_ec_words):
 
 
 def make_image(data, path=None, width=None, raw_list=False):
-    """creates a png image for the incoming data.
-    
-    if no path is given, a temporary file is created.
-    by default data is expected to be in an nested numpy array,
-    but a raw list is accepted if the corisponding flag is set.
-    if width is not esplicitely given, it is calculated as 
-    the square root of the data-length."""
+    """Creates a png image for the incoming data.
+
+    If no path is given, a temporary file is created.
+
+    By default data is expected to be in an nested numpy array, but a raw list
+    is accepted if the corisponding flag is set.
+
+    If width is not esplicitely given, it is calculated as the square root of
+    the data-length."""
     if not raw_list:
         data = [list(array) for array in data]
         data = sum(data, [])
