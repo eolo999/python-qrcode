@@ -1,4 +1,4 @@
-from qrdraw import position_detection_pattern
+from qrcode.qrdraw import position_detection_pattern
 
 def test_position_detection_pattern():
     """Tautologic test till I'll refactor.

@@ -1,10 +1,7 @@
-import sys
-sys.path.append('..')
-
 from nose.tools import raises
 
-from qrcode import Encoder
-from qrutils import *
+from qrcode.qrcode import Encoder
+from qrcode.qrutils import *
 
 def test_qr_size():
     assert get_qr_size(23) == 109

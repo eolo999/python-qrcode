@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import sys
-sys.path.append('../')
 
-from gf import GaloisField
+from qrcode.gf import GaloisField
 
 def test_gf_add():
     gf = GaloisField()
