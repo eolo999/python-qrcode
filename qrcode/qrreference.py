@@ -31,7 +31,7 @@ for version in symbol_versions:
         num_of_bits_character_count_indicator[version]['kanji'] = 12
 
 #: ISO/IEC 18004 - Table 2
-mode_indicators = {
+mode_indicators_table = {
         'ECI': '0111',
         'numeric': '0001',
         'alphanumeric': '0010',
@@ -251,7 +251,7 @@ symbol_version_data = {
 ecl_index = {'L': 0, 'M': 1, 'Q': 2, 'H': 3}
 
 #: ISO/IEC 18004 - Table 7 (partial)
-max_char_capacity = {
+max_char_capacity_table = {
         'numeric': {
             1: [41, 34, 27, 17],
             2: [77, 63, 48, 34],

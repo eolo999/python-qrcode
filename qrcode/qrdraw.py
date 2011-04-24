@@ -3,7 +3,7 @@
 
 from numpy import array
 
-from qrutils import make_image, get_qr_size
+from qrutils import make_image, qr_size
 from qrcode import Encoder
 
 from alignment_patterns import get_coordinates
@@ -17,7 +17,7 @@ def test():
         symbol_array = version_information_positioning(symbol_array,
                 code.version_information)
     make_image(symbol_array)
-    pbm_image(get_qr_size(code.symbol_version), symbol_array)
+    pbm_image(qr_size(code.symbol_version), symbol_array)
     return symbol_array
 
 
@@ -59,7 +59,7 @@ def version_information_positioning(symbol_array, version_information):
 def position_detection_pattern(symbol_version):
     """Assign Position Detection Pattern bits and relative separators.
     """
-    side_size = get_qr_size(symbol_version)
+    side_size = qr_size(symbol_version)
 
     a = array([[9] * side_size] * side_size)
     a[0] = a[6] = [1] * 7 + [0] + [9] * (side_size - 16) + [0] + [1] * 7

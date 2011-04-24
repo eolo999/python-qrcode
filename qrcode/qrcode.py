@@ -3,15 +3,15 @@
 from qrutils import (
         convert_alphanumeric,
         convert_numeric,
+        data_codewords_per_block,
         determine_datatype,
         determine_symbol_version,
-        get_blocks,
-        get_ec_codewords,
-        get_max_codewords,
-        get_max_databits,
-        get_mode_indicators,
+        ec_codewords,
+        mode_indicators,
         get_num_of_bits_character_count_indicator,
         list_to_coeff,
+        max_codewords,
+        max_databits,
         pad,
         reed_solomon,
         to_binstring,
@@ -33,11 +33,11 @@ class Encoder(object):
         self.data_mode = determine_datatype(input_string)
         self.symbol_version = determine_symbol_version(input_string,
                 error_correction_level)
-        self.mode_bits = get_mode_indicators(self.data_mode)
+        self.mode_bits = mode_indicators(self.data_mode)
         self.count_bits = get_num_of_bits_character_count_indicator(
                 self.symbol_version,
                 self.data_mode)
-        self.symbol_capacity_bits = get_max_databits(self.symbol_version,
+        self.symbol_capacity_bits = max_databits(self.symbol_version,
                 self.error_correction_level)
         self.data_blocks = []
         self.ec_blocks = []
@@ -50,9 +50,9 @@ class Encoder(object):
         """Encode the input string into a bit sequence."""
         self._convert_data()
         self.codewords = self._bitstream_to_codewords()
-        max_codewords = get_max_codewords(self.symbol_version,
+        full = max_codewords(self.symbol_version,
                 self.error_correction_level)
-        self._fill_symbol_with_pad_codewords(max_codewords -
+        self._fill_symbol_with_pad_codewords(full -
                 len(self.codewords))
 
         self._apply_error_correction()
@@ -70,14 +70,14 @@ class Encoder(object):
         """Creates the error correction block relative to every data block."""
         index = 0
         cw = list_to_coeff(self.codewords)
-        code_blocks_num = get_blocks(self.symbol_version,
+        code_blocks = data_codewords_per_block(self.symbol_version,
                 self.error_correction_level)
-        for cb in code_blocks_num:
+        for cb in code_blocks:
             self.data_blocks.append(cw[index:index + cb])
             index += cb
 
-        ec_codewords_per_block = get_ec_codewords(self.symbol_version,
-                self.error_correction_level) / len(self.data_blocks)
+        ec_codewords_per_block = ec_codewords(self.symbol_version,
+                self.error_correction_level) / len(code_blocks)
 
         for code_block in self.data_blocks:
             self.ec_blocks.append(

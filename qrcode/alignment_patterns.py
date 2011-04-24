@@ -6,7 +6,7 @@ accommodated between the Timing Pattern and the first Alignment Pattern in the
 symbol interior."""
 
 from itertools import product
-from qrutils import get_qr_size
+from qrutils import qr_size
 
 #: ISO/IEC 18004 Table E.1
 patterns = {
@@ -75,7 +75,7 @@ def get_coordinates(symbol_version):
     centers = get_centers(symbol_version)
     coordinates = [x for x in product(centers, centers)]
     coordinates = [x for x in coordinates if is_valid(x,
-        get_qr_size(symbol_version))]
+        qr_size(symbol_version))]
     return coordinates
 
 def get_num_ap(symbol_version):

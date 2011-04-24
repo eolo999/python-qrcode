@@ -1,4 +1,4 @@
-from qrcode.qrutils import get_blocks
+from qrcode.qrutils import data_codewords_per_block
 from qrcode.qrreference import blocks_per_ecl , generator_polynomials
 
 def test_generator_polynomials_length():
@@ -11,4 +11,4 @@ def test_block_per_ecl_lengths():
 
 
 def test_split():
-    assert get_blocks(1, 'L') == [19]
+    assert data_codewords_per_block(1, 'L') == [19]

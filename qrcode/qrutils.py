@@ -7,44 +7,92 @@ from qrreference import (
         blocks_per_ecl,
         ecl_index,
         generator_polynomials,
-        max_char_capacity,
-        mode_indicators,
+        max_char_capacity_table,
+        mode_indicators_table,
         num_of_bits_character_count_indicator,
         symbol_sizes,
         symbol_version_data,
         version_information_bit_string)
 
 from gf import GFPoly, GaloisField
+
+
 gf256 = GaloisField()
 
-def get_blocks(version, ecl):
+
+def data_codewords_per_block(version, ecl):
+    """Given symbol version and error correction level returns the number of
+    data codewords per each block.
+
+    >>> data_codewords_per_block(7, 'Q')
+    [14, 14, 15, 15, 15, 15]
+    
+    The number of codewords per block is not always the same as shown in
+    tables 13-22."""
     return blocks_per_ecl[version][ecl_index[ecl]]
 
-def get_version_information_bit_string(symbol_version):
-    return version_information_bit_string[symbol_version]
 
-def get_max_char_capacity(data_type, symbol_version, ecl):
-    return max_char_capacity[data_type][symbol_version][ecl_index[ecl]]
+def ec_codewords(version, ecl):
+    """Returns the total number of error correction codewords in a QR symbol.
 
-def get_ec_codewords(version, ecl):
-    return (
-            symbol_version_data[version]['data_capacity'] -
+    >>> ec_codewords(7, 'Q')
+    108
+
+    """
+    return (symbol_version_data[version]['data_capacity'] -
             symbol_version_data[version]['data_codewords'][ecl])
 
-def get_max_codewords(version, ecl):
+
+def max_char_capacity(data_type, symbol_version, ecl):
+    """Returns the maximum number of characters a defined symbol can
+    contain.
+    
+    >>> max_char_capacity('numeric', 7, 'H')
+    154
+    
+    """
+    return max_char_capacity_table[data_type][symbol_version][ecl_index[ecl]]
+
+
+def max_codewords(version, ecl):
+    """Returns the maximum number of codewords a defined symbol can contain.
+    
+    >>> max_codewords(17, 'Q')
+    367
+    
+    """
     return symbol_version_data[version]['data_codewords'][ecl]
 
-def get_max_databits(version, ecl):
-    return get_max_codewords(version, ecl) * 8
 
-def get_mode_indicators(data_mode):
-    return mode_indicators[data_mode]
+def max_databits(version, ecl):
+    """Being a codeword 8 bit long this functions simply multiplies the max
+    number of codewords by 8.
+
+    >>> cw = max_codewords(17, 'Q')
+    >>> max_databits(17, 'Q') == cw * 8
+    True
+
+    """
+    return max_codewords(version, ecl) * 8
+
+
+def mode_indicators(data_mode):
+    """Returns the bit string representing the data_mode.
+
+    >>> mode_indicators('numeric')
+    '0001'
+
+    """
+    return mode_indicators_table[data_mode]
+
 
 def get_num_of_bits_character_count_indicator(version, data_mode):
     return num_of_bits_character_count_indicator[version][data_mode]
 
-def get_qr_size(version):
+
+def qr_size(version):
     return symbol_sizes[version]
+
 
 def alphanumeric_codes(input):
     codes = []
@@ -59,12 +107,14 @@ def version_information(symbol_version):
     """
     if symbol_version < 7:
         return ''
-    return get_version_information_bit_string(symbol_version)
+    return version_information_bit_string[symbol_version]
+
 
 def determine_datatype(input_string):
     if input_string.isdigit():
         return 'numeric'
     return 'alphanumeric'
+
 
 def determine_symbol_version(input_string, ecl):
     """Determine symbol version for input_string based on error correction
@@ -73,7 +123,8 @@ def determine_symbol_version(input_string, ecl):
     input_string_length = len(input_string)
     current = 1
     while current <= 40:
-        if get_max_char_capacity(data_type, current, ecl) >= input_string_length:
+        if (max_char_capacity(data_type, current, ecl) >=
+                input_string_length):
             return current
         else:
             current += 1
@@ -227,10 +278,10 @@ def make_image(data, path=None, width=None, raw_list=False):
     width = int(width)
     tmp_data = []
     for i in data:
-      if i == 1:
-        tmp_data.append(0)
-      else:
-        tmp_data.append(1)
+        if i == 1:
+            tmp_data.append(0)
+        else:
+            tmp_data.append(1)
     im = Image.new("1", (width, width))
     im.putdata(tmp_data)
     path = path or (mktemp() + ".png")
