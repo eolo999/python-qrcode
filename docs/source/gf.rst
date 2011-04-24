@@ -1,6 +1,6 @@
 Gf
 ==
 
-.. automodule:: gf
+.. automodule:: qrcode.gf
     :members:
     :undoc-members:

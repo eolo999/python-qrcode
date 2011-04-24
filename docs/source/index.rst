@@ -12,9 +12,9 @@ Contents:
     :maxdepth: 2
 
     usage
-    alignment_patterns
     gf
     qrcode
+    alignment_patterns
     qrdraw
     qrreference
     qrutils

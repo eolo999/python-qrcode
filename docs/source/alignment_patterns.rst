@@ -1,6 +1,7 @@
 Alignment patterns
 ==================
 
-.. automodule:: alignment_patterns
+.. automodule:: qrcode.alignment_patterns
     :members:
     :undoc-members:
+

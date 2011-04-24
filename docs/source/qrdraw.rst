@@ -1,6 +1,6 @@
 Qrdraw
 ======
 
-.. automodule:: qrdraw
+.. automodule:: qrcode.qrdraw
     :members:
     :undoc-members:

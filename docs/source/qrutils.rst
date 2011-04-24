@@ -1,6 +1,6 @@
 Qrutils
 =======
 
-.. automodule:: qrutils
+.. automodule:: qrcode.qrutils
     :members:
     :undoc-members:

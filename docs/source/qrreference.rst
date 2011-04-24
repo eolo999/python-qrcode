@@ -1,6 +1,6 @@
 Qrreference
 ===========
 
-.. automodule:: qrreference
+.. automodule:: qrcode.qrreference
     :members:
     :undoc-members:
