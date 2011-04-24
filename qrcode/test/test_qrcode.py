@@ -1,9 +1,6 @@
-import sys
-sys.path.append('..')
-
 from nose.tools import raises
 
-from qrcode import Encoder
+from qrcode.qrcode import Encoder
 
 def test_numeric_encoder():
     e = Encoder('01234567', 'L')

@@ -1,8 +1,5 @@
-import sys
-sys.path.append('..')
-
-from qrutils import get_blocks
-from qrreference import blocks_per_ecl , generator_polynomials
+from qrcode.qrutils import get_blocks
+from qrcode.qrreference import blocks_per_ecl , generator_polynomials
 
 def test_generator_polynomials_length():
     for key in generator_polynomials:
