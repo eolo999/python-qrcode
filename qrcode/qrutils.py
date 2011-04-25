@@ -91,6 +91,13 @@ def get_num_of_bits_character_count_indicator(version, data_mode):
 
 
 def qr_size(version):
+    """Given a symbol version number returns the length of the symbol side.
+    So a symbol version 1 is a square of 21 size.
+
+    >>> qr_size(1)
+    21
+
+    """
     return symbol_sizes[version]
 
 
@@ -261,6 +268,12 @@ def reed_solomon(coefficients, num_of_ec_words):
 
 def make_image(data, path=None, width=None, raw_list=False, zoom=1):
     """Creates a png image for the incoming data.
+
+    :param data: encoded data
+    :param path: file system path where the image will be saved
+    :param width: the length of the side of the symbol
+    :param raw_list: wether data is a raw_list or not
+    :param zoom: image zoom multiplier
 
     If no path is given, a temporary file is created.
 
