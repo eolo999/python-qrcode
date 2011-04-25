@@ -1,9 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from numpy import array
+from numpy import array, rot90
 
-from qrutils import make_image, qr_size
+from qrutils import make_image, qr_size, list_to_bin
 from qrcode import Encoder
 
 from alignment_patterns import get_coordinates
@@ -16,17 +16,108 @@ def test():
     if code.symbol_version >= 7:
         symbol_array = version_information_positioning(symbol_array,
                 code.version_information)
-    make_image(symbol_array, zoom=4)
-    pbm_image(qr_size(code.symbol_version), symbol_array)
+    symbol_array = leave_space_for_format_information(symbol_array)
+    unmasked_array = place_data(code, symbol_array)
+    masked_array, mask_pattern = apply_masking(unmasked_array)
+    final_array = format_information(masked_array,
+            code.error_correction_level, mask_pattern)
+
+    make_image(final_array, zoom=4)
+    #pbm_image(qr_size(code.symbol_version), final_array)
+    return symbol_array, final_array
+
+
+def apply_masking(unmasked_array):
+    """Given an unmasked array returns the masked array and the mask
+    pattern."""
+    return unmasked_array, None
+
+def format_information(masked_array, ecl, mask_pattern):
+    """Place format information in symbol; returns the final array, no further
+    operations."""
+    return masked_array
+
+
+def leave_space_for_format_information(symbol_array):
+    """Set all format information modules to 8 so that they are not
+    overwritten by data placement (which checks that module value is 9 before
+    it place data). This is just to quicken the route to have a final symbol to
+    test with a decoder. Rewriting will come at that point."""
+    symbol_array[:,8][:6] = 8
+    symbol_array[:,8][7:9] = 8
+    symbol_array[8][:6] = 8
+    symbol_array[8][7] = 8
+    symbol_array[8][-8:] = 8
+    symbol_array[:,8][-7:] = 8
+    # It is not clear if this module is always black
+    # cfr. ISO/IEC 18004 Fig. 19
+    symbol_array[:,8][-8] = 1
     return symbol_array
+
+
+def place_data(code, symbol_array):
+    """An alternative method for placement in the symbol, which yields the
+    same result, is to regard the interleaved codeword sequence as a single
+    bit stream, which is placed (starting with the most significant bit) in
+    the two-module wide columns alternately upwards and downwards from the
+    right to left of the symbol. In each column the bits are placed
+    alternately in the right and left modules, moving upwards or downwards
+    according to the direction of placement and skipping areas occupied by
+    function patterns, changing direction at the top or bottom of the column.
+    Each bit shall always be placed in the first available module position.
+    """
+    # Rotate the array 180 degrees so that data positioning start from
+    # symbol_array[0][0]
+    symbol_array = rot90(symbol_array, 2)
+    flat_data_list = list("".join(list_to_bin(code.final_sequence)))
+    top = 0
+    bottom = qr_size(code.symbol_version) - 1
+    direction = 1
+    left_column = 0
+    row = 0
+    column = 0
+    while flat_data_list:
+        # If we have reached top or bottom margins
+        if direction == 1:
+            if row > bottom:
+                # reset row to bottom index
+                row = bottom
+                # shift by 2 columns
+                left_column += 2
+                column = left_column
+                # invert direction
+                direction *= -1
+        else:
+            if row < top:
+                # reset row to top index
+                row = top
+                left_column += 2
+                column = left_column
+                direction *= -1
+
+        try:
+            if symbol_array[row][column] == 9:
+                data = flat_data_list.pop(0)
+                symbol_array[row][column] = data
+        except IndexError:
+            pass
+
+        if column % 2 == 0:
+            column += 1
+        else:
+            column = left_column
+            row += 1 * direction
+
+    # rotate back the symbol
+    return rot90(symbol_array, 2)
 
 
 def pbm_image(symbol_size, symbol_array):
     with open('test.pbm', 'w') as f:
         f.writelines(['P1\n', " ".join([str(symbol_size), str(symbol_size)]),
             '\n', ])
-        for array in symbol_array:
-            for x in array:
+        for arr in symbol_array:
+            for x in arr:
                 if x == 9:
                     x = 0
                 f.write("".join([str(x), ' ']))
@@ -34,7 +125,6 @@ def pbm_image(symbol_size, symbol_array):
     return True
 
 def version_information_positioning(symbol_array, version_information):
-    print version_information
     symbol_array[0][-11] = symbol_array[-11][0] = version_information[0]
     symbol_array[0][-10] = symbol_array[-10][0] = version_information[1]
     symbol_array[0][-9] = symbol_array[-9][0] = version_information[2]
@@ -119,20 +209,6 @@ def draw_alignment_pattern(center, symbol_array):
 
     return symbol_array
 
-def encoding_region():
-    """
-    This region shall contain the symbol characters representing data, those
-    representing error correction codewords, the Version Information and
-    Format Information. Refer to 8.7.1 for details of the symbol characters.
-    Refer to 8.9 for details of the Format Information. Refer to 8.10 for
-    details of the Version Information
-    """
-
-    data_regions()
-    ecc_regions()
-    version_information()
-    format_information()
-    pass
 
 def quiet_zone():
     """
