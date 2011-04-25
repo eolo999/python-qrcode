@@ -259,7 +259,7 @@ def reed_solomon(coefficients, num_of_ec_words):
     return rem.coefficients
 
 
-def make_image(data, path=None, width=None, raw_list=False):
+def make_image(data, path=None, width=None, raw_list=False, zoom=1):
     """Creates a png image for the incoming data.
 
     If no path is given, a temporary file is created.
@@ -284,6 +284,7 @@ def make_image(data, path=None, width=None, raw_list=False):
             tmp_data.append(1)
     im = Image.new("1", (width, width))
     im.putdata(tmp_data)
+    im = im.resize((width * zoom, width * zoom))
     path = path or (mktemp() + ".png")
     im.save(path)
     return path

@@ -16,7 +16,7 @@ def test():
     if code.symbol_version >= 7:
         symbol_array = version_information_positioning(symbol_array,
                 code.version_information)
-    make_image(symbol_array)
+    make_image(symbol_array, zoom=4)
     pbm_image(qr_size(code.symbol_version), symbol_array)
     return symbol_array
 
