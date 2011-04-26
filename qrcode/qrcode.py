@@ -17,6 +17,7 @@ from qrutils import (
         to_binstring,
         version_information)
 
+from qrdraw import make_array
 
 class Encoder(object):
     """Encode numeric and alphanumeric strings in a QR Code Symbol version 2.
@@ -43,6 +44,7 @@ class Encoder(object):
         self.ec_blocks = []
         self.final_sequence = []
         self.version_information = None
+        self.symbol_array = None
 
         self.encode()
 
@@ -62,9 +64,12 @@ class Encoder(object):
         # apply mask
         # matrix position
 
-    def save_image(self, path):
+    def save_image(self, path=None):
         """Saves the QR Code Symbol to the given 'path'."""
-        pass
+        self.symbol_array = make_array(self)
+        image_path = make_image(self.symbol_array, path=path, zoom=5)
+        return image_path
+
 
     def _apply_error_correction(self):
         """Creates the error correction block relative to every data block."""
