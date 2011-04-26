@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from qrdraw import make_array
+
 from qrutils import (
         convert_alphanumeric,
         convert_numeric,
@@ -10,14 +12,13 @@ from qrutils import (
         mode_indicators,
         get_num_of_bits_character_count_indicator,
         list_to_coeff,
+        make_image,
         max_codewords,
         max_databits,
         pad,
         reed_solomon,
         to_binstring,
         version_information)
-
-from qrdraw import make_array
 
 class Encoder(object):
     """Encode numeric and alphanumeric strings in a QR Code Symbol version 2.

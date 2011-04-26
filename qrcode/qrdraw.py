@@ -5,9 +5,8 @@ from numpy import array, rot90, poly1d
 
 from qrreference import ecl_indicators
 
-from qrutils import make_image, qr_size, list_to_bin, to_binstring, to_coeff
+from qrutils import qr_size, list_to_bin, to_binstring, to_coeff
 
-from qrcode import Encoder
 
 from alignment_patterns import get_coordinates
 
@@ -19,25 +18,6 @@ legenda = {
         8: 'format information area',
         9: 'unassigned bit',
         }
-
-
-def test():
-    code = Encoder('1' * 368, 'L')
-    symbol_array = position_detection_pattern(code.symbol_version)
-    symbol_array = alignment_pattern(code.symbol_version, symbol_array)
-    symbol_array = timing_pattern(symbol_array)
-    if code.symbol_version >= 7:
-        symbol_array = version_information_positioning(symbol_array,
-                code.version_information)
-    symbol_array = leave_space_for_format_information(symbol_array)
-    unmasked_array = place_data(code, symbol_array)
-    masked_array, mask_pattern = apply_masking(unmasked_array)
-    final_array = format_information(masked_array,
-            code.error_correction_level, mask_pattern)
-
-    make_image(final_array, zoom=4)
-    #pbm_image(qr_size(code.symbol_version), final_array)
-    return symbol_array, final_array
 
 
 def make_array(code):
