@@ -1,17 +1,30 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from numpy import array, rot90
+from numpy import array, rot90, poly1d
 
-from qrutils import make_image, qr_size, list_to_bin
+from qrreference import ecl_indicators
+
+from qrutils import make_image, qr_size, list_to_bin, to_binstring, to_coeff
+
 from qrcode import Encoder
 
 from alignment_patterns import get_coordinates
 
+legenda = {
+        0: 'light encoding region module',
+        1: 'dark encoding region module',
+        6: 'light function pattern module',
+        7: 'dark function pattern module',
+        8: 'format information area',
+        9: 'unassigned bit',
+        }
+
+
 def test():
     code = Encoder('1' * 368, 'L')
     symbol_array = position_detection_pattern(code.symbol_version)
-    alignment_pattern(code.symbol_version, symbol_array)
+    symbol_array = alignment_pattern(code.symbol_version, symbol_array)
     symbol_array = timing_pattern(symbol_array)
     if code.symbol_version >= 7:
         symbol_array = version_information_positioning(symbol_array,
@@ -29,14 +42,32 @@ def test():
 
 def apply_masking(unmasked_array):
     """Given an unmasked array returns the masked array and the mask
-    pattern."""
-    return unmasked_array, None
+    pattern. I omit the best mask selection to generate the first symbol.
+    I choose to apply '000' masking."""
+    for i in range(len(unmasked_array[0])):
+        for j in range(len(unmasked_array[0])):
+            if (i + j) % 2 == 0:
+                if unmasked_array[i][j] == 0:
+                    unmasked_array[i][j] = 1
+                elif unmasked_array[i][j] == 1:
+                    unmasked_array[i][j] = 0
+    return unmasked_array, '000'
 
 def format_information(masked_array, ecl, mask_pattern):
     """Place format information in symbol; returns the final array, no further
     operations."""
-    return masked_array
+    format_information_data = bch_15_5(ecl_indicators[ecl] + mask_pattern)
+    format_information_data = [int(x) for x in list(format_information_data)]
+    # place format_information_data in symbol
+    masked_array[:,8][:6] = format_information_data[:6]
+    masked_array[:,8][7:9] = format_information_data[6:8]
+    masked_array[:,8][-7:] = format_information_data[8:]
+    format_information_data.reverse()
+    masked_array[8][:6] = format_information_data[:6]
+    masked_array[8][7:9] = format_information_data[6:8]
+    masked_array[8][-8:] = format_information_data[7:]
 
+    return masked_array
 
 def leave_space_for_format_information(symbol_array):
     """Set all format information modules to 8 so that they are not
@@ -51,8 +82,26 @@ def leave_space_for_format_information(symbol_array):
     symbol_array[:,8][-7:] = 8
     # It is not clear if this module is always black
     # cfr. ISO/IEC 18004 Fig. 19
-    symbol_array[:,8][-8] = 1
+    symbol_array[:,8][-8] = 6
     return symbol_array
+
+
+def bch_15_5(data_bit_string):
+    numerator = (
+            poly1d([int(x) for x in data_bit_string]) *
+            poly1d([1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]))
+    generator_polynomial = poly1d([1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1])
+    q, r = numerator / generator_polynomial
+    coeff_list = [abs(int(x)) for x in r.coeffs]
+    while len(coeff_list) < 10:
+        coeff_list.insert(0, 0)
+    coeff_string = ''
+    for coeff in coeff_list:
+        coeff_string += str(coeff)
+
+    unmasked = data_bit_string + coeff_string
+    masked = to_binstring(to_coeff(unmasked) ^ to_coeff('101010000010010'), 15)
+    return masked
 
 
 def place_data(code, symbol_array):
@@ -125,6 +174,14 @@ def pbm_image(symbol_size, symbol_array):
     return True
 
 def version_information_positioning(symbol_array, version_information):
+    change_bits = ''
+    for c in version_information:
+        if c == '0':
+            change_bits += '6'
+        else:
+            change_bits += '7'
+    version_information = change_bits
+
     symbol_array[0][-11] = symbol_array[-11][0] = version_information[0]
     symbol_array[0][-10] = symbol_array[-10][0] = version_information[1]
     symbol_array[0][-9] = symbol_array[-9][0] = version_information[2]
@@ -147,20 +204,19 @@ def version_information_positioning(symbol_array, version_information):
 
 
 def position_detection_pattern(symbol_version):
-    """Assign Position Detection Pattern bits and relative separators.
-    """
+    """Assign Position Detection Pattern bits and relative separators."""
     side_size = qr_size(symbol_version)
 
     a = array([[9] * side_size] * side_size)
-    a[0] = a[6] = [1] * 7 + [0] + [9] * (side_size - 16) + [0] + [1] * 7
-    a[1] = a[5] = [1, 0, 0, 0, 0, 0, 1, 0] + [9] * (side_size - 16) + [0] + [1, 0, 0, 0, 0, 0, 1]
-    a[2] = a[3] = a[4] = [1, 0, 1, 1, 1, 0, 1, 0] + [9] * (side_size - 16) + [0, 1, 0, 1, 1, 1, 0, 1]
-    a[7] = [0] * 8 + [9] * (side_size - 16) + [0] * 8
+    a[0] = a[6] = [7] * 7 + [6] + [9] * (side_size - 16) + [6] + [7] * 7
+    a[1] = a[5] = [7, 6, 6, 6, 6, 6, 7, 6] + [9] * (side_size - 16) + [6, 7, 6, 6, 6, 6, 6, 7]
+    a[2] = a[3] = a[4] = [7, 6, 7, 7, 7, 6, 7, 6] + [9] * (side_size - 16) + [6, 7, 6, 7, 7, 7, 6, 7]
+    a[7] = [6] * 8 + [9] * (side_size - 16) + [6] * 8
 
-    a[-8] = [0] * 8 + [9] * (side_size - 8)
-    a[-1] = a[-7] = [1] * 7 + [0] + [9] * (side_size - 8)
-    a[-2] = a[-6] = [1, 0, 0, 0, 0, 0, 1] + [0] + [9] * (side_size - 8)
-    a[-3] = a[-4] = a[-5] = [1, 0, 1, 1, 1, 0, 1]  + [0] + [9] * (side_size - 8)
+    a[-8] = [6] * 8 + [9] * (side_size - 8)
+    a[-1] = a[-7] = [7] * 7 + [6] + [9] * (side_size - 8)
+    a[-2] = a[-6] = [7, 6, 6, 6, 6, 6, 7, 6] + [9] * (side_size - 8)
+    a[-3] = a[-4] = a[-5] = [7, 6, 7, 7, 7, 6, 7, 6] + [9] * (side_size - 8)
     return a
 
 def timing_pattern(symbol_array):
@@ -177,12 +233,11 @@ def timing_pattern(symbol_array):
     """
     for i in range(8, symbol_array.shape[0] - 8):
         if i % 2 == 0:
-            symbol_array[6][i] = 1
+            symbol_array[6][i] = 7
         else:
-            symbol_array[6][i] = 0
+            symbol_array[6][i] = 6
 
     symbol_array[:,6] = symbol_array[6]
-    print symbol_array
     return symbol_array
 
 def alignment_pattern(symbol_version, symbol_array):
@@ -201,11 +256,11 @@ def alignment_pattern(symbol_version, symbol_array):
 def draw_alignment_pattern(center, symbol_array):
     x, y = center
 
-    symbol_array[x - 2][y - 2:y + 3] = [1, 1, 1, 1, 1]
-    symbol_array[x - 1][y - 2:y + 3] = [1, 0, 0, 0, 1]
-    symbol_array[x][y - 2:y + 3] =     [1, 0, 1, 0, 1]
-    symbol_array[x + 1][y - 2:y + 3] = [1, 0, 0, 0, 1]
-    symbol_array[x + 2][y - 2:y + 3] = [1, 1, 1, 1, 1]
+    symbol_array[x - 2][y - 2:y + 3] = [7, 7, 7, 7, 7]
+    symbol_array[x - 1][y - 2:y + 3] = [7, 6, 6, 6, 7]
+    symbol_array[x][y - 2:y + 3] =     [7, 6, 7, 6, 7]
+    symbol_array[x + 1][y - 2:y + 3] = [7, 6, 6, 6, 7]
+    symbol_array[x + 2][y - 2:y + 3] = [7, 7, 7, 7, 7]
 
     return symbol_array
 

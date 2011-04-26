@@ -704,3 +704,8 @@ generator_polynomials = {
     25, 132, 93, 45, 105]
 }
 
+ecl_indicators = {
+        'L': '01',
+        'M': '00',
+        'Q': '11',
+        'H': '10'}

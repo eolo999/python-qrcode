@@ -291,7 +291,7 @@ def make_image(data, path=None, width=None, raw_list=False, zoom=1):
     width = int(width)
     tmp_data = []
     for i in data:
-        if i == 1:
+        if i in (1, 7):
             tmp_data.append(0)
         else:
             tmp_data.append(1)
