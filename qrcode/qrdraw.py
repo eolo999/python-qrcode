@@ -101,6 +101,7 @@ def bch_15_5(data_bit_string):
 
     unmasked = data_bit_string + coeff_string
     masked = to_binstring(to_coeff(unmasked) ^ to_coeff('101010000010010'), 15)
+    print masked
     return masked
 
 

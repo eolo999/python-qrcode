@@ -19,4 +19,4 @@ from qrcode.qrdraw import position_detection_pattern, bch_15_5
 #    assert a[-8].tolist() == [0] * 8 + [9] * 13
 
 def test_bch_15_5():
-    assert bch_15_5('00101') == '001010011011100'
+    assert bch_15_5('00101') == '100000011001110'
