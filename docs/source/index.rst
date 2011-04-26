@@ -6,6 +6,8 @@
 Welcome to python-qrcode's documentation!
 =========================================
 
+.. image:: images/github.png
+
 Contents:
 
 .. toctree::
