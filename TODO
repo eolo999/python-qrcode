@@ -1,0 +1,23 @@
+* Data type recognition is too weak
+
+* Generalize data type conversion
+
+* Oh,oh! where did we handle Remainder Bits?
+
+* Implement JIS X 0201 character set encoding
+  
+  It should be quite easy as the mapping is 8 bit per character and we have a
+  nice reference table
+
+* Implement masking patterns and choice based on ranking
+  
+  Only mask pattern '000' is implemented and applied. We should build all
+  other patterns and the ranking algorithm in ISO/IEC 18004 Table 24
+
+* Refactoring and tests
+
+  * bch calculation for version information instead of reference table use
+
+* Documentation
+
+
