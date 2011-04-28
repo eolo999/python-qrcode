@@ -29,18 +29,19 @@ class Encoder(object):
                                    maintaining its readability.
     """
     def __init__(self, input_string, error_correction_level='L'):
-        self.code = ''
+        # input data
         self.input_string = input_string
         self.error_correction_level = error_correction_level
+
+        # automatic recognition data
         self.data_mode = determine_datatype(input_string)
         self.symbol_version = determine_symbol_version(input_string,
                 error_correction_level)
-        self.mode_bits = mode_indicators(self.data_mode)
         self.count_bits = get_num_of_bits_character_count_indicator(
-                self.symbol_version,
-                self.data_mode)
-        self.symbol_capacity_bits = max_databits(self.symbol_version,
-                self.error_correction_level)
+                self.symbol_version, self.data_mode)
+
+        # empty data objects
+        self.code = ''
         self.data_blocks = []
         self.ec_blocks = []
         self.final_sequence = []
@@ -50,8 +51,9 @@ class Encoder(object):
         self.encode()
 
     def encode(self):
-        """Encode the input string into a bit sequence."""
-        self._convert_data()
+        """Encode the input string into a sequence of codewords and error
+        correction words."""
+        self._convert_input_string()
         self.codewords = self._bitstream_to_codewords()
         full = max_codewords(self.symbol_version,
                 self.error_correction_level)
@@ -111,7 +113,9 @@ class Encoder(object):
                 self.codewords.append(pad1)
 
     def _terminator(self):
-        delta = self.symbol_capacity_bits - len(self.code)
+        symbol_capacity_bits = max_databits(self.symbol_version,
+                self.error_correction_level)
+        delta = symbol_capacity_bits - len(self.code)
         if delta >= 4:
             num_of_zeroes = 4
         elif 0 <= delta < 4:
@@ -124,20 +128,29 @@ class Encoder(object):
         self._terminator()
         codewords = []
         tmp_word = ''
-        for n in range(1, len(self.code) + 1):
-            tmp_word += self.code[n - 1]
+        
+        # pad bitstream to a multiple of 8
+        partial = len(self.code) % 8
+        if partial != 0:
+            code = "".join([self.code, '0' * (8 - partial)])
+        else:
+            code = self.code
+
+        # I need to start from 1 not to have the module condition pass on n=0
+        # and flush the word to the temporary list
+        for n in range(1, len(code) + 1):
+            tmp_word += code[n - 1]
             if n % 8 == 0:
+                # flush the word to the temporary word list
                 codewords.append(tmp_word)
                 tmp_word = ''
-        if tmp_word:
-            tmp_word = pad(tmp_word, 8)
-            codewords.append(tmp_word)
         return codewords
 
-    def _convert_data(self):
+    def _convert_input_string(self):
         """
         Convert the data characters into a bit stream in accordance with the
-        rules for the mode in force, as defined in 8.4.1 to 8.4.5
+        rules for the mode in force, as defined in ISO/IEC 18004 8.4.1 to
+        8.4.5.
         """
         if self.data_mode == 'numeric':
             self.code = "".join([self._insert_indicators(),
@@ -149,8 +162,9 @@ class Encoder(object):
             assert self._validate_alphanumeric_bitstream_length()
 
     def _insert_indicators(self):
-        indicators = "".join([self.mode_bits,
-            to_binstring(len(self.input_string), self.count_bits)])
+        mode_bits = mode_indicators(self.data_mode)
+        indicators = "".join([mode_bits, to_binstring(
+            len(self.input_string), self.count_bits)])
         return indicators
 
     def _validate_numeric_bitstream_length(self):
@@ -180,7 +194,9 @@ class Encoder(object):
 def _main():
     global num, alnum
     num = Encoder('01234567', 'L')
-    alnum = Encoder('asdfdadas876-asd.', 'L', 'alphanumeric')
+    alnum = Encoder('asdfdadas876-asd.', 'L')
+    num.save_image()
+    alnum.save_image()
 
 if __name__ == '__main__':
     _main()

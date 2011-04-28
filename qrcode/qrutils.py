@@ -300,4 +300,4 @@ def make_image(data, path=None, width=None, raw_list=False, zoom=1):
     im = im.resize((width * zoom, width * zoom))
     path = path or (mktemp() + ".png")
     im.save(path)
-    return path
+    return path, im
