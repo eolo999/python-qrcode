@@ -3,6 +3,7 @@ from math import sqrt
 from tempfile import mktemp
 
 from qrreference import (
+        alphanumeric_char_string,
         alphanumeric_char_values,
         blocks_per_ecl,
         ecl_index,
@@ -120,7 +121,11 @@ def version_information(symbol_version):
 def determine_datatype(input_string):
     if input_string.isdigit():
         return 'numeric'
-    return 'alphanumeric'
+    elif all(ch.upper() in alphanumeric_char_string
+            for ch in input_string):
+        return 'alphanumeric'
+    else:
+        return '8bit'
 
 
 def determine_symbol_version(input_string, ecl):
@@ -226,6 +231,12 @@ def convert_alphanumeric(input):
             data_bit_stream += to_binstring(input[0], 6)
     return data_bit_stream
 
+
+def convert_8bit(input):
+    data_bit_stream = ''
+    for ch in input:
+        data_bit_stream += to_binstring(ord(ch), 8)
+    return data_bit_stream
 
 def list_to_bin(coefficients_list):
     """Given a list of codewords represented as integers it returns a

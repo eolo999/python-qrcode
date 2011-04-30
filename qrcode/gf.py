@@ -82,6 +82,7 @@ class GFPoly(object):
                 self.coefficients = coefficients[first_non_zero:]
         else:
             self.coefficients = coefficients
+        self.length = len(coefficients)
 
     def __str__(self):
         return "GFPoly(" + str(self.coefficients) + ")"
@@ -190,7 +191,7 @@ class GFPoly(object):
 
         if coefficient == 0:
             return self.field.get_zero()
-        size = self.length
+        size = len(self.coefficients)
         product = [0] * (size + degree)
         for i in range(size):
             product[i] = self.field.multiply(self.coefficients[i],

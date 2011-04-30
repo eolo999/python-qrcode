@@ -4,7 +4,7 @@
 
 * Oh,oh! where did we handle Remainder Bits?
 
-* Implement JIS X 0201 character set encoding
+* Implement JIS X 0201 character set encoding [pseudo-done]
   
   It should be quite easy as the mapping is 8 bit per character and we have a
   nice reference table

@@ -3,6 +3,7 @@
 from qrdraw import make_array
 
 from qrutils import (
+        convert_8bit,
         convert_alphanumeric,
         convert_numeric,
         data_codewords_per_block,
@@ -15,7 +16,6 @@ from qrutils import (
         make_image,
         max_codewords,
         max_databits,
-        pad,
         reed_solomon,
         to_binstring,
         version_information)
@@ -160,6 +160,9 @@ class Encoder(object):
             self.code = "".join([self._insert_indicators(),
                     convert_alphanumeric(self.input_string)])
             assert self._validate_alphanumeric_bitstream_length()
+        elif self.data_mode == '8bit':
+            self.code = "".join([self._insert_indicators(),
+                convert_8bit(self.input_string)])
 
     def _insert_indicators(self):
         mode_bits = mode_indicators(self.data_mode)
