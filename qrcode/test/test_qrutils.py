@@ -64,8 +64,8 @@ def test_split_alphanumeric_mode():
         [23]])
     assert(split_numeric_input('') == [])
 
-def test_convert_numeric():
-    assert(convert_numeric('01234567') == '000000110001010110011000011')
+def test_convert():
+    assert(convert('01234567', 'numeric') == '000000110001010110011000011')
 
 def test_pad():
     assert pad('0101', 5) == '01010'

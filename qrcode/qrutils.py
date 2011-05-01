@@ -197,46 +197,40 @@ def pad(bit_string, length):
     return "".join([bit_string, '0' * zeroes])
 
 
-def convert_numeric(input):
-    """ISO/IEC 18004 8.4.2: The input data string is divided into groups of
-    three digits, and each group is converted to its 10 bit binary equivalent.
-    If the number of input digits is not an exact multiple of three, the final
-    one or two digits are converted to 4 or 7 bits respectively.
-
-    Returns the input respresentation as a bit string.
-    """
-    splitted_input = split_numeric_input(input)
-    data_bit_stream = ''
-    for input in splitted_input:
-        data_bit_stream += to_binstring(int(input), (len(input) * 3) + 1)
-    return data_bit_stream
-
-
-def convert_alphanumeric(input):
-    """ISO/IEC 18004 8.4.3: Input data characters are divided into groups of
-    two characters which are encoded to 11-bit binary codes. The character
-    value of the first character is multiplied by 45 and the character value
-    of the second digit is added to the product. The sum is then converted to
-    an 11 bit binary number. If the number of input data characters is not a
-    multiple of two, the character value of the final character is encoded to
-    a 6-bit binary number.
-    """
-    input = alphanumeric_codes(input)
-    splitted_input = split_alphanumeric_input(input)
-    data_bit_stream = ''
-    for input in splitted_input:
-        if len(input) == 2:
-            data_bit_stream += to_binstring(input[0] * 45 + input[1], 11)
-        else:
-            data_bit_stream += to_binstring(input[0], 6)
-    return data_bit_stream
-
-
-def convert_8bit(input):
-    data_bit_stream = ''
-    for ch in input:
-        data_bit_stream += to_binstring(ord(ch), 8)
-    return data_bit_stream
+def convert(input, data_mode):
+    if data_mode == 'numeric':
+    #: ISO/IEC 18004 8.4.2: The input data string is divided into groups of
+    #  three digits, and each group is converted to its 10 bit binary equivalent.
+    #  If the number of input digits is not an exact multiple of three, the final
+    #  one or two digits are converted to 4 or 7 bits respectively.
+    #  Returns the input respresentation as a bit string.
+        splitted_input = split_numeric_input(input)
+        data_bit_stream = ''
+        for input in splitted_input:
+            data_bit_stream += to_binstring(int(input), (len(input) * 3) + 1)
+        return data_bit_stream
+    #: """ISO/IEC 18004 8.4.3: Input data characters are divided into groups of
+    #  two characters which are encoded to 11-bit binary codes. The character
+    #  value of the first character is multiplied by 45 and the character value
+    #  of the second digit is added to the product. The sum is then converted to
+    #  an 11 bit binary number. If the number of input data characters is not a
+    #  multiple of two, the character value of the final character is encoded to
+    #  a 6-bit binary number.
+    elif data_mode == 'alphanumeric':
+        input = alphanumeric_codes(input)
+        splitted_input = split_alphanumeric_input(input)
+        data_bit_stream = ''
+        for input in splitted_input:
+            if len(input) == 2:
+                data_bit_stream += to_binstring(input[0] * 45 + input[1], 11)
+            else:
+                data_bit_stream += to_binstring(input[0], 6)
+        return data_bit_stream
+    elif data_mode == '8bit':
+        data_bit_stream = ''
+        for ch in input:
+            data_bit_stream += to_binstring(ord(ch), 8)
+        return data_bit_stream
 
 def list_to_bin(coefficients_list):
     """Given a list of codewords represented as integers it returns a

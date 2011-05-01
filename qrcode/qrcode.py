@@ -3,9 +3,7 @@
 from qrdraw import make_array
 
 from qrutils import (
-        convert_8bit,
-        convert_alphanumeric,
-        convert_numeric,
+        convert,
         data_codewords_per_block,
         determine_datatype,
         determine_symbol_version,
@@ -70,7 +68,7 @@ class Encoder(object):
     def save_image(self, path=None):
         """Saves the QR Code Symbol to the given 'path'."""
         self.symbol_array = make_array(self)
-        image_path = make_image(self.symbol_array, path=path, zoom=5)
+        image_path, image = make_image(self.symbol_array, path=path, zoom=5)
         return image_path
 
 
@@ -152,46 +150,14 @@ class Encoder(object):
         rules for the mode in force, as defined in ISO/IEC 18004 8.4.1 to
         8.4.5.
         """
-        if self.data_mode == 'numeric':
-            self.code = "".join([self._insert_indicators(),
-                    convert_numeric(self.input_string)])
-            assert self._validate_numeric_bitstream_length()
-        elif self.data_mode == 'alphanumeric':
-            self.code = "".join([self._insert_indicators(),
-                    convert_alphanumeric(self.input_string)])
-            assert self._validate_alphanumeric_bitstream_length()
-        elif self.data_mode == '8bit':
-            self.code = "".join([self._insert_indicators(),
-                convert_8bit(self.input_string)])
+        self.code = "".join([self._insert_indicators(),
+                    convert(self.input_string, self.data_mode)])
 
     def _insert_indicators(self):
         mode_bits = mode_indicators(self.data_mode)
         indicators = "".join([mode_bits, to_binstring(
             len(self.input_string), self.count_bits)])
         return indicators
-
-    def _validate_numeric_bitstream_length(self):
-        r = len(self.input_string) % 3
-        if r != 0:
-            r = r * 3 + 1
-        return len(self.code) == (
-                4 + self.count_bits +
-                10 * (len(self.input_string) / 3) + r)
-
-    def _validate_alphanumeric_bitstream_length(self):
-        """
-        B = 4 + C + 11(D DIV 2) + 6(D MOD 2)
-        where:
-        B = number of bits in bit stream
-        C = number of bits in Character Count Indicator ( from Table 3)
-        D = number of input data characters
-        first and last 4 are respectively for data mode indicator and
-        terminator sequence
-        """
-        B = len(self.code)
-        C = self.count_bits
-        D = len(self.input_string)
-        return B == 4 + C + 11 * (D / 2) + 6 * (D % 2)
 
 
 def _main():
