@@ -10,6 +10,7 @@ setup(
         author=['Edoardo Batini', 'Christian Wörner'],
         author_email=['eodbat@gmail.com', 'christianworner@gmail.com'],
         packages=['qrcode', 'qrcode.test'],
+        scripts=['scripts/pyqrencode'],
         url='http://pypi.python.org/pypi/QRCode/',
         license='GPL V.3',
         description='Create QR Code Symbols',

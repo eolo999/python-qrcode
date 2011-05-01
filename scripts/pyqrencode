@@ -1,0 +1,17 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+import sys
+from qrcode.qrcode import Encoder
+
+def main(input_string, ecl):
+    e = Encoder(input_string, ecl)
+    path = e.save_image()
+    print "Symbol Version: %d" % e.symbol_version
+    print "Data Mode: %s" % e.data_mode
+    print "Error Correction Level: %s" % e.error_correction_level
+    print "Path: %s" % path
+
+if __name__ == '__main__':
+    main(sys.argv[1], sys.argv[2])
+
