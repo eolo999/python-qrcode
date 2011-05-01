@@ -3,10 +3,9 @@
 
 from numpy import array, rot90
 
-from qrreference import ecl_indicators
+from qrreference import ecl_indicators, symbol_version_data
 
-from qrutils import qr_size, list_to_bin, to_binstring, to_coeff
-
+from qrutils import qr_size, list_to_bin, bch_15_5
 
 from alignment_patterns import get_coordinates
 
@@ -95,7 +94,8 @@ def place_data(code, symbol_array):
     # Rotate the array 180 degrees so that data positioning start from
     # symbol_array[0][0]
     symbol_array = rot90(symbol_array, 2)
-    flat_data_list = list("".join(list_to_bin(code.final_sequence)))
+    flat_data_list = list("".join(list_to_bin(code.final_sequence))) + ([0] *
+            symbol_version_data[code.symbol_version]['remainder_bits'])
     top = 0
     bottom = qr_size(code.symbol_version) - 1
     direction = 1
