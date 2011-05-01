@@ -1,3 +1,4 @@
+from numpy import poly1d
 from PIL import Image
 from math import sqrt
 from tempfile import mktemp
@@ -19,6 +20,50 @@ from gf import GFPoly, GaloisField
 
 
 gf256 = GaloisField()
+
+
+def bch_18_6(symbol_version):
+    # This function is not used as in the specs we have a reference table
+    # covering all the symbol version. It was just to test if I would have
+    # obtained the same results.
+    data_bit_string = to_binstring(symbol_version, 6)
+    numerator = (
+            poly1d([int(x) for x in data_bit_string]) *
+            poly1d([1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]))
+    generator_polynomial = poly1d([1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1])
+    q, r = numerator / generator_polynomial
+    print r
+    coeff_list = [abs(int(x)) for x in r.coeffs]
+    # don't know why i have some 2 and 3 coefficients. used a modulo operation
+    # to obtain the expected results
+    coeff_list = [x % 2 for x in coeff_list]
+    while len(coeff_list) < 12:
+        coeff_list.insert(0, 0)
+    coeff_string = ''
+    for coeff in coeff_list:
+        coeff_string += str(coeff)
+
+    result = data_bit_string + coeff_string
+    return result
+
+
+def bch_15_5(data_bit_string):
+    numerator = (
+            poly1d([int(x) for x in data_bit_string]) *
+            poly1d([1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]))
+    generator_polynomial = poly1d([1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1])
+    q, r = numerator / generator_polynomial
+    coeff_list = [abs(int(x)) for x in r.coeffs]
+    coeff_list = [x % 2 for x in coeff_list]
+    while len(coeff_list) < 10:
+        coeff_list.insert(0, 0)
+    coeff_string = ''
+    for coeff in coeff_list:
+        coeff_string += str(coeff)
+
+    unmasked = data_bit_string + coeff_string
+    masked = to_binstring(to_coeff(unmasked) ^ to_coeff('101010000010010'), 15)
+    return masked
 
 
 def data_codewords_per_block(version, ecl):

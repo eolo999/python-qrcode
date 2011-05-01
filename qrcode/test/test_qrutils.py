@@ -3,6 +3,9 @@ from nose.tools import raises
 from qrcode.qrcode import Encoder
 from qrcode.qrutils import *
 
+def test_bch_15_5():
+    assert bch_15_5('00101') == '100000011001110'
+
 def test_qr_size():
     assert qr_size(23) == 109
 
@@ -34,18 +37,13 @@ def test_max_codewords():
 def test_ec_codewords():
     assert ec_codewords(1, 'H') == 17
 
-def test_version_information_5():
-    assert version_information(5) == ''
+def test_version_informations_1_6():
+    for version in range(1,7):
+        assert version_information(version) == ''
 
-def test_version_information_7():
-    version_string = version_information(7)
-    result = '000111110010010100'
-    assert version_string == result
-
-def test_version_information_8():
-    version_string = version_information(8)
-    result = '001000010110111100'
-    assert version_string == result
+def test_version_informations_7_40():
+    for version in version_information_bit_string:
+        assert bch_18_6(version) == version_information_bit_string[version]
 
 @raises(Exception)
 def test_determine_symbol_version_exception():

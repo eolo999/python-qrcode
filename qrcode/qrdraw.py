@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from numpy import array, rot90, poly1d
+from numpy import array, rot90
 
 from qrreference import ecl_indicators
 
@@ -79,24 +79,6 @@ def leave_space_for_format_information(symbol_array):
     # cfr. ISO/IEC 18004 Fig. 19
     symbol_array[:,8][-8] = 6
     return symbol_array
-
-
-def bch_15_5(data_bit_string):
-    numerator = (
-            poly1d([int(x) for x in data_bit_string]) *
-            poly1d([1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]))
-    generator_polynomial = poly1d([1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1])
-    q, r = numerator / generator_polynomial
-    coeff_list = [abs(int(x)) for x in r.coeffs]
-    while len(coeff_list) < 10:
-        coeff_list.insert(0, 0)
-    coeff_string = ''
-    for coeff in coeff_list:
-        coeff_string += str(coeff)
-
-    unmasked = data_bit_string + coeff_string
-    masked = to_binstring(to_coeff(unmasked) ^ to_coeff('101010000010010'), 15)
-    return masked
 
 
 def place_data(code, symbol_array):
