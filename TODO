@@ -1,3 +1,7 @@
+* Make symbols over 6 to work
+
+* Carriage return problem
+
 * Data type recognition is too weak
 
 * Generalize data type conversion

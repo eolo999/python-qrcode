@@ -248,6 +248,3 @@ def quiet_zone():
     surrounding the symbol on all four sides. Its nominal reflectance value
     shall be equal to that of the light modules.
     """
-
-if __name__ == '__main__':
-    test()
