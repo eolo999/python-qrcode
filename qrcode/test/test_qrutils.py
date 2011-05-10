@@ -10,8 +10,8 @@ def test_qr_size():
     assert qr_size(23) == 109
 
 def test_get_num_of_bits_character_count_indicator():
-    assert get_num_of_bits_character_count_indicator(27, 'kanji') == 12
-    assert get_num_of_bits_character_count_indicator(1, 'numeric') == 10
+    assert num_char_count_indicator_bits(27, 'kanji') == 12
+    assert num_char_count_indicator_bits(1, 'numeric') == 10
 
 @raises(KeyError)
 def test_qr_size_wrong_version():

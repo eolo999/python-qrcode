@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+"""This module implements the qrcode Encoder class which handles all the
+operation needed to translate a string into an image."""
 
 from qrdraw import make_array
 
@@ -9,7 +11,7 @@ from qrutils import (
         determine_symbol_version,
         ec_codewords,
         mode_indicators,
-        get_num_of_bits_character_count_indicator,
+        num_char_count_indicator_bits,
         list_to_coeff,
         make_image,
         max_codewords,
@@ -36,11 +38,12 @@ class Encoder(object):
         self.data_mode = determine_datatype(input_string)
         self.symbol_version = determine_symbol_version(input_string,
                 error_correction_level)
-        self.count_bits = get_num_of_bits_character_count_indicator(
+        self.count_bits = num_char_count_indicator_bits(
                 self.symbol_version, self.data_mode)
 
         # empty data objects
         self.code = ''
+        self.codewords = []
         self.data_blocks = []
         self.ec_blocks = []
         self.final_sequence = []
@@ -69,18 +72,18 @@ class Encoder(object):
     def save_image(self, path=None):
         """Saves the QR Code Symbol to the given 'path'."""
         self.symbol_array = make_array(self)
-        image_path, image = make_image(self.symbol_array, path=path, zoom=5)
+        image_path, _image = make_image(self.symbol_array, path=path, zoom=5)
         return image_path
 
     def _apply_error_correction(self):
         """Creates the error correction block relative to every data block."""
         index = 0
-        cw = list_to_coeff(self.codewords)
+        coeff_list = list_to_coeff(self.codewords)
         code_blocks = data_codewords_per_block(self.symbol_version,
                 self.error_correction_level)
-        for cb in code_blocks:
-            self.data_blocks.append(cw[index:index + cb])
-            index += cb
+        for code_block in code_blocks:
+            self.data_blocks.append(coeff_list[index:index + code_block])
+            index += code_block
 
         ec_codewords_per_block = ec_codewords(self.symbol_version,
                 self.error_correction_level) / len(code_blocks)
@@ -90,6 +93,8 @@ class Encoder(object):
                     reed_solomon(code_block, ec_codewords_per_block))
 
     def _create_final_sequence(self):
+        """Interleaves codewords from different codeblocks and append error
+        correction codewords."""
         for i in range(max([len(x) for x in self.data_blocks])):
             for data_block in self.data_blocks:
                 try:
@@ -104,13 +109,14 @@ class Encoder(object):
         """Fill a symbol to its maximum capacity with alternate pad words."""
         pad0 = '11101100'
         pad1 = '00010001'
-        for n in range(num_of_codewords):
-            if n % 2 == 0:
+        for count in range(num_of_codewords):
+            if count % 2 == 0:
                 self.codewords.append(pad0)
             else:
                 self.codewords.append(pad1)
 
     def _terminator(self):
+        """Add zeroes to the code string."""
         symbol_capacity_bits = max_databits(self.symbol_version,
                 self.error_correction_level)
         delta = symbol_capacity_bits - len(self.code)
@@ -123,6 +129,7 @@ class Encoder(object):
         self.code += ('0' * num_of_zeroes)
 
     def _bitstream_to_codewords(self):
+        """Split code bit stream into 8 bit codewords."""
         self._terminator()
         codewords = []
         tmp_word = ''
@@ -136,9 +143,9 @@ class Encoder(object):
 
         # I need to start from 1 not to have the module condition pass on n=0
         # and flush the word to the temporary list
-        for n in range(1, len(code) + 1):
-            tmp_word += code[n - 1]
-            if n % 8 == 0:
+        for count in range(1, len(code) + 1):
+            tmp_word += code[count - 1]
+            if count % 8 == 0:
                 # flush the word to the temporary word list
                 codewords.append(tmp_word)
                 tmp_word = ''
@@ -154,6 +161,7 @@ class Encoder(object):
                     convert(self.input_string, self.data_mode)])
 
     def _insert_indicators(self):
+        """Calculates data indicators."""
         mode_bits = mode_indicators(self.data_mode)
         indicators = "".join([mode_bits, to_binstring(
             len(self.input_string), self.count_bits)])
@@ -161,11 +169,12 @@ class Encoder(object):
 
 
 def _main():
-    global num, alnum
+    """Creates two Encoder instances for testing purpose."""
     num = Encoder('01234567', 'L')
     alnum = Encoder('asdfdadas876-asd.', 'L')
     num.save_image()
     alnum.save_image()
+    return num, alnum
 
 if __name__ == '__main__':
     _main()

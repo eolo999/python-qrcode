@@ -1,4 +1,4 @@
-__doc__ = """The Alignment Patterns are positioned symmetrically on either
+"""The Alignment Patterns are positioned symmetrically on either
 side of the diagonal running from the top left corner of the symbol to the
 bottom right corner. They are spaced as evenly as possible between the Timing
 Pattern and the opposite side of the symbol, any uneven spacing being
@@ -9,7 +9,7 @@ from itertools import product
 from qrutils import qr_size
 
 #: ISO/IEC 18004 Table E.1
-patterns = {
+PATTERNS = {
         1:  {'num_ap': 0,  'centers': []},
         2:  {'num_ap': 1,  'centers': [6, 18]},
         3:  {'num_ap': 1,  'centers': [6, 22]},
@@ -58,13 +58,13 @@ def is_valid(coordinates, size):
 
     TODO: find a nicer way.
     """
-    x, y = coordinates
-    if x == 6:
-        if y == 6 or y == (size - 7) or y == (size - 8):
+    x_coord, y_coord = coordinates
+    if x_coord == 6:
+        if y_coord == 6 or y_coord == (size - 7) or y_coord == (size - 8):
             return False
         else:
             return True
-    elif (x == (size - 7) or x == (size - 8)) and y == 6:
+    elif (x_coord == (size - 7) or x_coord == (size - 8)) and y_coord == 6:
         return False
     else:
         return True
@@ -82,15 +82,20 @@ def get_num_ap(symbol_version):
     """Given a symbol version number returns the number of alignment patters
     of the symbol.
     """
-    return patterns[symbol_version]['num_ap']
+    return PATTERNS[symbol_version]['num_ap']
 
 def get_centers(symbol_version):
-    return patterns[symbol_version]['centers']
+    """Returns a list of center points from PATTERNS."""
+    return PATTERNS[symbol_version]['centers']
 
-def test_coordinates():
-    assert set(get_coordinates(7)) == set([(6,22), (22, 6), (22, 22), (22, 38),
+def test_coordinate():
+    """Test result for symbol version 7."""
+    assert set(get_coordinates(7)) == set([(6, 22), (22, 6), (22, 22), (22, 38),
         (38, 22), (38, 38)])
 
-def test_coordinates_random():
+def test_coordinates_all():
+    """Ensures the number of alignment patterns conforms to the ISO/IEC 18004
+    specification."""
     for symbol_version in range(1, 41):
-        assert len(get_coordinates(symbol_version)) == get_num_ap(symbol_version)
+        assert (len(get_coordinates(symbol_version)) ==
+                get_num_ap(symbol_version))

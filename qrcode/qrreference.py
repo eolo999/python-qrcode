@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+
+"""Contains reference tables for static data as it is exposed on the ISO/IEC
+18004 specification."""
+
 from string import ascii_uppercase, digits
 
 symbol_versions = [(n+1) for n in range(40)]

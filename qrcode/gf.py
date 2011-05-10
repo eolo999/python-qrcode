@@ -1,56 +1,67 @@
 #!/usr/bin/python
+"""Handles Galois Field calculation."""
 
 class GaloisField(object):
+    """Raw representation of a Galois Field and its algebric operations."""
     def __init__(self, galois_field=256, primitive_polynomial_as_int=285):
-        self.pp = primitive_polynomial_as_int
-        self.gf = galois_field
-        self.log = [0] * self.gf
-        self.alog = [0] * self.gf
+        self.primitive_poly = primitive_polynomial_as_int
+        self.field = galois_field
+        self.log = [0] * self.field
+        self.alog = [0] * self.field
         self.fill_log_arrays()
 
     def fill_log_arrays(self):
-        self.log[0] = 1 - self.gf
+        """Fills log and alog dicts."""
+        self.log[0] = 1 - self.field
         self.alog[0] = 1
-        for i in range(1, self.gf):
+        for i in range(1, self.field):
             self.alog[i] = self.alog[i-1] * 2
-            if self.alog[i] >= self.gf:
-                self.alog[i] ^= self.pp
+            if self.alog[i] >= self.field:
+                self.alog[i] ^= self.primitive_poly
             self.log[self.alog[i]] = i
 
-    def add(self, a, b):
-        return int(a) ^ int(b)
+    def add(self, op1, op2):
+        """Sum operation in a Galois Field."""
+        return int(op1) ^ int(op2)
 
-    def subtract(self, a, b):
+    def subtract(self, op1, op2):
         """The same as add in a GF"""
-        return self.add(a, b)
+        return self.add(op1, op2)
 
-    def multiply(self, a, b):
-        if (a == 0) or (b == 0):
+    def multiply(self, op1, op2):
+        """Multiply two numbers in a Galois Field."""
+        if (op1 == 0) or (op2 == 0):
             return 0
         else:
-            return self.alog[(self.log[a] + self.log[b]) % (self.gf - 1)]
+            return self.alog[(self.log[op1] + self.log[op2]) % (self.field - 1)]
 
-    def alpha_power(self, a):
-        return self.alog[a]
+    def alpha_power(self, num):
+        """Power of a number in a Galois Field."""
+        return self.alog[num]
 
-    def alpha_log(self, a):
-        if a == 0:
+    def alpha_log(self, num):
+        """Log of a number in a Galois Field."""
+        if num == 0:
             raise Exception("InvalidArgument")
-        return self.log[a]
+        return self.log[num]
 
-    def inverse(self, a):
-        """Multiplicative inverse of a"""
-        if a == 0:
+    def inverse(self, num):
+        """Multiplicative inverse of num"""
+        if num == 0:
             raise Exception("InvalidArgument")
-        return self.alog[255 - self.log[a]]
+        return self.alog[255 - self.log[num]]
 
-    def quotient(self, a, b):
-        if b == 0:
+    def quotient(self, op1, op2):
+        """Divide two numbers in a Galois Field."""
+        if op2 == 0:
             raise Exception("b must be != 0")
         else:
-            return self.alog[(self.log[a] - self.log[b] + (self.gf - 1)) % (self.gf - 1)]
+            return self.alog[(self.log[op1] -
+                self.log[op2] + (self.field - 1)) % (self.field - 1)]
 
     def build_monomial(self, degree, coefficient):
+        """Given a degree and its coefficient returns a GFPoly in the Galois
+        Field."""
         if degree < 0:
             raise Exception("Degree must be positive")
         if coefficient == 0:
@@ -60,21 +71,24 @@ class GaloisField(object):
         return GFPoly(self, coefficients)
 
     def get_zero(self):
+        """Returns a *zero* GFPoly in the Galois Field."""
         return GFPoly(self, [0])
 
     def get_one(self):
+        """Returns a *one* GFPoly in the Galois Field."""
         return GFPoly(self, [1])
 
 
 class GFPoly(object):
+    """A polynomial in a GF256 Field"""
     def __init__(self, field, coefficients):
-        """A polynomial in a GF256 Field"""
         self.length = len(coefficients)
         self.field = field
 
         if (self.length > 1) and (coefficients[0] == 0):
             first_non_zero = 1
-            while (first_non_zero < self.length) and (coefficients[first_non_zero] == 0):
+            while ((first_non_zero < self.length) and
+                    (coefficients[first_non_zero] == 0)):
                 first_non_zero += 1
             if first_non_zero == self.length:
                 self.coefficients = self.field.get_zero().coefficients
@@ -101,13 +115,16 @@ class GFPoly(object):
 
         diff = other.length - self.length
         if diff == 0:
-            val = [self.field.add(x,y) for x,y in zip(self.coefficients, other.coefficients)]
+            val = [self.field.add(x, y) for x, y in
+                    zip(self.coefficients, other.coefficients)]
         elif diff > 0:
-            zr = [0] * diff
-            val = [self.field.add(x,y) for x,y in zip(zr + self.coefficients, other.coefficients)]
+            zeroes = [0] * diff
+            val = [self.field.add(x, y) for x, y in
+                    zip(zeroes + self.coefficients, other.coefficients)]
         else:
-            zr = [0] * abs(diff)
-            val = [self.field.add(x,y) for x,y in zip(self.coefficients, zr + other.coefficients)]
+            zeroes = [0] * abs(diff)
+            val = [self.field.add(x, y) for x, y in
+                    zip(self.coefficients, zeroes + other.coefficients)]
 
         val = GFPoly(self.field, val)
         return val
@@ -141,51 +158,57 @@ class GFPoly(object):
         quotient = self.field.get_zero()
         remainder = self
 
-        denominator_leading_term = other.get_coefficient(other.get_degree())
-        inverse_denominator_leading_term = self.field.inverse(denominator_leading_term)
+        den_leading_term = other.get_coefficient(other.get_degree())
+        inverse_den_leading_term = self.field.inverse(den_leading_term)
 
         while remainder.get_degree() > other.get_degree() and (not
                 remainder.is_zero()):
             degree_difference = remainder.get_degree() - other.get_degree()
             scale = self.field.multiply(
                     remainder.get_coefficient(remainder.get_degree()),
-                    inverse_denominator_leading_term)
+                    inverse_den_leading_term)
             term = other.multiply_by_monomial(degree_difference, scale)
-            iteration_quotient = self.field.build_monomial(degree_difference, scale)
+            iter_quotient = self.field.build_monomial(degree_difference, scale)
 
-            quotient += iteration_quotient
+            quotient += iter_quotient
             remainder += term
             #print "remainder(%d):" % remainder.get_degree(), remainder
 
         return quotient, remainder
 
     def get_coefficients(self):
+        """Return a list containing GFPoly's coefficients."""
         return self.coefficients
 
     def get_degree(self):
+        """Returns the GFPoly's degree."""
         return self.length - 1
 
     def is_zero(self):
+        """Returns true if GFPoly's coefficients is equal to 0."""
         return self.coefficients[0] == 0
 
     def get_coefficient(self, degree):
+        """Returns the cooefficient of the GFPoly's at a given degree."""
         return self.coefficients[self.length - 1 - degree]
 
-    def evaluate_at(self, m):
-        if m == 0:
+    def evaluate_at(self, degree):
+        if degree == 0:
             return self.get_coefficient(0)
-        if m == 1:
+        if degree == 1:
             result = 0
             for i in range(self.length):
                 result = self.field.add(result, self.coefficients[i])
             return result
         result = self.coefficients[0]
         for i in [x + 1 for x in range(self.length)]:
-            result = self.field.add(self.field.multiply(m, result),
+            result = self.field.add(self.field.multiply(degree, result),
                     self.coefficients[i])
         return result
 
     def multiply_by_monomial(self, degree, coefficient):
+        """Returns a new GFPoly obtained multiplying instance GFPoly by a
+        GFPoly monomial of given degree and coefficien."""
         if degree < 0:
             raise Exception("Degree must be positive")
 

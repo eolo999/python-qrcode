@@ -1,5 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+"""This module handles the displacement of data and Function Patterns of a
+qrcode inside a numpy array."""
 
 from numpy import array, rot90
 
@@ -9,7 +11,7 @@ from qrutils import qr_size, list_to_bin, bch_15_5
 
 from alignment_patterns import get_coordinates
 
-legenda = {
+LEGENDA = {
         0: 'light encoding region module',
         1: 'dark encoding region module',
         6: 'light function pattern module',
@@ -20,13 +22,14 @@ legenda = {
 
 
 def make_array(code):
+    """Given a qrcode.Encoder object it returns a complete qrcode array."""
     symbol_array = position_detection_pattern(code.symbol_version)
     symbol_array = alignment_pattern(code.symbol_version, symbol_array)
     symbol_array = timing_pattern(symbol_array)
     if code.symbol_version >= 7:
         symbol_array = version_information_positioning(symbol_array,
                 code.version_information)
-    symbol_array = leave_space_for_format_information(symbol_array)
+    symbol_array = protect_format_info_modules(symbol_array)
     unmasked_array = place_data(code, symbol_array)
     masked_array, mask_pattern = apply_masking(unmasked_array)
     final_array = format_information(masked_array,
@@ -53,9 +56,9 @@ def format_information(masked_array, ecl, mask_pattern):
     format_information_data = bch_15_5(ecl_indicators[ecl] + mask_pattern)
     format_information_data = [int(x) for x in list(format_information_data)]
     # place format_information_data in symbol
-    masked_array[:,8][:6] = format_information_data[:6]
-    masked_array[:,8][7:9] = format_information_data[6:8]
-    masked_array[:,8][-7:] = format_information_data[8:]
+    masked_array[:, 8][:6] = format_information_data[:6]
+    masked_array[:, 8][7:9] = format_information_data[6:8]
+    masked_array[:, 8][-7:] = format_information_data[8:]
     format_information_data.reverse()
     masked_array[8][:6] = format_information_data[:6]
     masked_array[8][7:9] = format_information_data[6:8]
@@ -63,20 +66,20 @@ def format_information(masked_array, ecl, mask_pattern):
 
     return masked_array
 
-def leave_space_for_format_information(symbol_array):
+def protect_format_info_modules(symbol_array):
     """Set all format information modules to 8 so that they are not
     overwritten by data placement (which checks that module value is 9 before
     it place data). This is just to quicken the route to have a final symbol to
     test with a decoder. Rewriting will come at that point."""
-    symbol_array[:,8][:6] = 8
-    symbol_array[:,8][7:9] = 8
+    symbol_array[:, 8][:6] = 8
+    symbol_array[:, 8][7:9] = 8
     symbol_array[8][:6] = 8
     symbol_array[8][7] = 8
     symbol_array[8][-8:] = 8
-    symbol_array[:,8][-7:] = 8
+    symbol_array[:, 8][-7:] = 8
     # It is not clear if this module is always black
     # cfr. ISO/IEC 18004 Fig. 19
-    symbol_array[:,8][-8] = 6
+    symbol_array[:, 8][-8] = 6
     return symbol_array
 
 
@@ -139,21 +142,25 @@ def place_data(code, symbol_array):
 
 
 def pbm_image(symbol_size, symbol_array):
-    with open('test.pbm', 'w') as f:
-        f.writelines(['P1\n', " ".join([str(symbol_size), str(symbol_size)]),
-            '\n', ])
+    """Creates a pbm given a symbol size and a qrcode array."""
+    with open('test.pbm', 'w') as output_file:
+        output_file.writelines([
+            'P1\n',
+            " ".join([str(symbol_size), str(symbol_size), '\n'])
+             ])
         for arr in symbol_array:
-            for x in arr:
-                if x == 9:
-                    x = 0
-                f.write("".join([str(x), ' ']))
-            f.write('\n')
+            for module in arr:
+                if module == 9:
+                    module = 0
+                output_file.write("".join([str(module), ' ']))
+            output_file.write('\n')
     return True
 
 def version_information_positioning(symbol_array, version_information):
+    """Place version information data in the proper array modules."""
     change_bits = ''
-    for c in version_information:
-        if c == '0':
+    for module in version_information:
+        if module == '0':
             change_bits += '6'
         else:
             change_bits += '7'
@@ -184,17 +191,22 @@ def position_detection_pattern(symbol_version):
     """Assign Position Detection Pattern bits and relative separators."""
     side_size = qr_size(symbol_version)
 
-    a = array([[9] * side_size] * side_size)
-    a[0] = a[6] = [7] * 7 + [6] + [9] * (side_size - 16) + [6] + [7] * 7
-    a[1] = a[5] = [7, 6, 6, 6, 6, 6, 7, 6] + [9] * (side_size - 16) + [6, 7, 6, 6, 6, 6, 6, 7]
-    a[2] = a[3] = a[4] = [7, 6, 7, 7, 7, 6, 7, 6] + [9] * (side_size - 16) + [6, 7, 6, 7, 7, 7, 6, 7]
-    a[7] = [6] * 8 + [9] * (side_size - 16) + [6] * 8
+    arr = array([[9] * side_size] * side_size)
+    arr[0] = arr[6] = [7] * 7 + [6] + [9] * (side_size - 16) + [6] + [7] * 7
+    arr[1] = arr[5] = ([7, 6, 6, 6, 6, 6, 7, 6] +
+            [9] * (side_size - 16) +
+            [6, 7, 6, 6, 6, 6, 6, 7])
+    arr[2] = arr[3] = arr[4] = ([7, 6, 7, 7, 7, 6, 7, 6] +
+            [9] * (side_size - 16) +
+            [6, 7, 6, 7, 7, 7, 6, 7])
+    arr[7] = [6] * 8 + [9] * (side_size - 16) + [6] * 8
 
-    a[-8] = [6] * 8 + [9] * (side_size - 8)
-    a[-1] = a[-7] = [7] * 7 + [6] + [9] * (side_size - 8)
-    a[-2] = a[-6] = [7, 6, 6, 6, 6, 6, 7, 6] + [9] * (side_size - 8)
-    a[-3] = a[-4] = a[-5] = [7, 6, 7, 7, 7, 6, 7, 6] + [9] * (side_size - 8)
-    return a
+    arr[-8] = [6] * 8 + [9] * (side_size - 8)
+    arr[-1] = arr[-7] = [7] * 7 + [6] + [9] * (side_size - 8)
+    arr[-2] = arr[-6] = [7, 6, 6, 6, 6, 6, 7, 6] + [9] * (side_size - 8)
+    arr[-3] = arr[-4] = arr[-5] = ([7, 6, 7, 7, 7, 6, 7, 6] +
+            [9] * (side_size - 8))
+    return arr
 
 def timing_pattern(symbol_array):
     """
@@ -214,7 +226,7 @@ def timing_pattern(symbol_array):
         else:
             symbol_array[6][i] = 6
 
-    symbol_array[:,6] = symbol_array[6]
+    symbol_array[:, 6] = symbol_array[6]
     return symbol_array
 
 def alignment_pattern(symbol_version, symbol_array):
@@ -231,13 +243,14 @@ def alignment_pattern(symbol_version, symbol_array):
     return symbol_array
 
 def draw_alignment_pattern(center, symbol_array):
-    x, y = center
+    """Actually set alignment modules in a qrcode array."""
+    x_coord, y_coord = center
 
-    symbol_array[x - 2][y - 2:y + 3] = [7, 7, 7, 7, 7]
-    symbol_array[x - 1][y - 2:y + 3] = [7, 6, 6, 6, 7]
-    symbol_array[x][y - 2:y + 3] =     [7, 6, 7, 6, 7]
-    symbol_array[x + 1][y - 2:y + 3] = [7, 6, 6, 6, 7]
-    symbol_array[x + 2][y - 2:y + 3] = [7, 7, 7, 7, 7]
+    symbol_array[x_coord - 2][y_coord - 2:y_coord + 3] = [7, 7, 7, 7, 7]
+    symbol_array[x_coord - 1][y_coord - 2:y_coord + 3] = [7, 6, 6, 6, 7]
+    symbol_array[x_coord][y_coord - 2:y_coord + 3] =     [7, 6, 7, 6, 7]
+    symbol_array[x_coord + 1][y_coord - 2:y_coord + 3] = [7, 6, 6, 6, 7]
+    symbol_array[x_coord + 2][y_coord - 2:y_coord + 3] = [7, 7, 7, 7, 7]
 
     return symbol_array
 
